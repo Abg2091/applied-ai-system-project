@@ -1,0 +1,24 @@
+%% Runtime data flow (with guardrails and fallback paths)
+flowchart TD
+    U["Free-text query"] --> S0{"ANTHROPIC_API_KEY set?"}
+    S0 -- "no (G6)" --> FB["Deterministic fallback:\nplain recommend_songs table"]
+    S0 -- yes --> EX["Claude: extract_profile\nschema: genre/mood ENUM-constrained\nto catalog values (G2)\ninput framed as untrusted data (G8)"]
+
+    EX -- "API error / timeout (G5)" --> FB
+    EX -- "success" --> CL["clamp_profile()\nclamps energy to [0,1] (G1)"]
+
+    CL --> REC["recommend_songs(user_prefs, songs, k=5)\n— UNCHANGED, deterministic, in recommender.py"]
+
+    REC --> RET["retrieval.get_notes(genres, artists)\nplain dict lookup, not similarity search (G12)\nmissing key -> omit, never invent (G4)"]
+
+    RET --> EXP["Claude: explain_recommendations\nschema: song references ENUM-constrained\nto the exact recommended IDs (primary guardrail)"]
+
+    EXP -- "API error (G5)" --> FB
+    EXP -- "success" --> GR{"guardrails.check_grounding\nexact case-insensitive match vs\nallowed titles/artists only (G3)"}
+
+    GR -- "fail: unlisted mention found" --> LOG["log guardrail trip (G15)"] --> FB
+    GR -- "pass" --> OUT["Final answer:\nNL explanation + score/breakdown table"]
+
+    style REC fill:#2d5,stroke:#333,color:#000
+    style FB fill:#f66,stroke:#333,color:#000
+    style GR fill:#fc6,stroke:#333,color:#000

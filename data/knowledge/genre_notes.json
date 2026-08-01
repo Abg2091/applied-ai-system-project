@@ -1,0 +1,19 @@
+{
+  "pop": "Pop emphasizes catchy melodies, verse-chorus structure, and broad accessibility.",
+  "lofi": "Lo-fi favors relaxed tempos and warm, low-key textures well suited to studying or background listening.",
+  "rock": "Rock centers on electric guitars, strong rhythmic drive, and a raw, energetic sound.",
+  "ambient": "Ambient music emphasizes atmosphere and texture over rhythm or melody, often used for calm, unobtrusive listening.",
+  "jazz": "Jazz is built on improvisation, swung rhythms, and complex harmony.",
+  "synthwave": "Synthwave revives 1980s synthesizer textures with a nostalgic, retro-futuristic feel.",
+  "indie pop": "Indie pop blends pop melodies with a lighter, more independently-produced sensibility.",
+  "classical": "Classical music is built on formal composition for orchestral or acoustic instruments, spanning centuries of notated tradition.",
+  "hip hop": "Hip hop centers on rhythmic vocal delivery over strong beats and produced or sampled instrumentals.",
+  "folk": "Folk music favors acoustic instrumentation and storytelling rooted in traditional or personal narrative.",
+  "metal": "Metal is defined by heavily distorted guitars, aggressive rhythms, and high intensity.",
+  "R&B": "R&B (rhythm and blues) blends soulful vocals with groove-driven, often romantic or emotional songwriting.",
+  "country": "Country music draws on storytelling lyrics, acoustic and steel-guitar instrumentation, and rural roots.",
+  "EDM": "EDM (electronic dance music) is built around synthesized production and a steady beat designed for dancing.",
+  "reggae": "Reggae is characterized by off-beat rhythms, prominent bass, and roots in Jamaican music traditions.",
+  "blues": "Blues centers on expressive vocals, call-and-response phrasing, and the blues scale's melancholic tonality.",
+  "techno": "Techno is a repetitive, synthesizer- and drum-machine-driven electronic style built for continuous dance-floor energy."
+}

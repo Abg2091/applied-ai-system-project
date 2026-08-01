@@ -1,0 +1,24 @@
+%% Build order (staged delivery, each stage independently testable)
+flowchart LR
+    St0["Stage 0\nContracts & safety rails\nenum schema · clamp_profile\ninjection-safe framing · .env hygiene"]
+    St1["Stage 1\nMinimal vertical slice\nextraction -> unchanged scorer -> explanation\nschema-guardrail only"]
+    St2["Stage 2\nReliability hardening\ntyped exception handling\nmissing-key fallback"]
+    St3["Stage 3\nGrounding corpus\nkeyed lookup, not TF-IDF"]
+    St4["Stage 4\nTextual guardrail net\n+ trip logging"]
+    St5["Stage 5\nTests\nincl. adversarial + failure-path"]
+
+    St0 --> St1 --> St2 --> St3 --> St4 --> St5
+
+    St0 -. closes .-> G1["G1 numeric range"]
+    St0 -. closes .-> G2["G2 genre/mood vocab"]
+    St0 -. closes .-> G8["G8 prompt injection"]
+    St0 -. closes .-> G9["G9 .env hygiene"]
+    St1 -. closes .-> G11["G11 big-bang scope"]
+    St2 -. closes .-> G5["G5 API failures"]
+    St2 -. closes .-> G6["G6 missing key"]
+    St3 -. closes .-> G12["G12 over-engineered retrieval"]
+    St3 -. closes .-> G4["G4 empty retrieval"]
+    St4 -. closes .-> G3["G3 fuzzy guardrail"]
+    St4 -. closes .-> G15["G15 no observability"]
+    St5 -. closes .-> G13["G13 no injection test"]
+    St5 -. closes .-> G14["G14 no failure test"]

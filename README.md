@@ -731,6 +731,31 @@ You will go deeper on this in your model card.
 
 ---
 
+## Natural-Language Add-On (Stretch Feature)
+
+On top of the core recommender above, I added an optional chat-style layer that uses the Claude API. Instead of filling in genre/mood/energy by hand, you can just type a plain sentence like "chill lofi songs for studying" and it does the rest.
+
+Here's how I kept it from just making stuff up:
+
+- The scoring system above still picks the actual songs — Claude never chooses them. Claude only turns your sentence into a profile, then writes a short explanation of what was already picked.
+- Claude is technically blocked from naming any song outside that real, already-picked list.
+- I also added a second check that scans the explanation text itself, just in case something slips through.
+- If the Claude API is down, or you haven't set up a key, it just falls back to the plain list above — it never crashes.
+- I gave it a small set of background notes about each genre/artist (`data/knowledge/`) so its explanations have something real to point to instead of guessing.
+
+To try it:
+
+1. Copy `.env.example` to `.env` and add your own `ANTHROPIC_API_KEY`.
+2. Run:
+   ```bash
+   python -m src.nl_interface "chill lofi songs for studying"
+   ```
+3. Or run `python -m src.nl_interface --demo` to see a few example queries at once — including one that tries to trick it, so you can watch the safety check catch it.
+
+If you don't set up a key, it just skips straight to the normal recommender above — no errors, no setup required.
+
+---
+
 ## Reflection
 
 Read and complete `model_card.md`:
