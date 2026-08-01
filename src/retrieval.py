@@ -11,7 +11,7 @@ numerical edge cases - and is fully testable without touching disk.
 get_notes() is the thin wrapper that loads the on-disk corpus for it.
 
 A genre/artist with no matching note is simply omitted, never invented -
-see EXPLANATION_SYSTEM_PROMPT in nl_interface.py, which instructs Claude to
+see EXPLANATION_SYSTEM_PROMPT in nl_interface.py, which instructs Gemini to
 say nothing about anything grounding_notes doesn't cover, rather than guess.
 """
 

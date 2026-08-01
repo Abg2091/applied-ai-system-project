@@ -1,7 +1,6 @@
 import json
 
-import anthropic
-import httpx
+from google.genai import errors as genai_errors
 
 from src.nl_interface import (
     MAX_QUERY_LENGTH,
@@ -17,26 +16,20 @@ from src.nl_interface import (
 )
 
 
-class FakeBlock:
+class FakeResponse:
     def __init__(self, text):
-        self.type = "text"
         self.text = text
 
 
-class FakeResponse:
-    def __init__(self, text):
-        self.content = [FakeBlock(text)]
-
-
-class FakeMessages:
+class FakeModels:
     def __init__(self, responses):
         # Each entry is either a JSON response string (success) or an
         # Exception instance to raise - lets one fake client simulate a
-        # Claude API failure on a specific call in the sequence.
+        # Gemini API failure on a specific call in the sequence.
         self._responses = list(responses)
         self.calls = []
 
-    def create(self, **kwargs):
+    def generate_content(self, **kwargs):
         self.calls.append(kwargs)
         item = self._responses.pop(0)
         if isinstance(item, BaseException):
@@ -46,7 +39,7 @@ class FakeMessages:
 
 class FakeClient:
     def __init__(self, responses):
-        self.messages = FakeMessages(responses)
+        self.models = FakeModels(responses)
 
 
 SMALL_CATALOG = [
@@ -61,8 +54,8 @@ SMALL_CATALOG = [
 ]
 
 
-def make_connection_error() -> anthropic.APIConnectionError:
-    return anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
+def make_connection_error() -> genai_errors.ServerError:
+    return genai_errors.ServerError(code=503, response_json={"error": {"message": "overloaded"}})
 
 
 def make_small_catalog() -> list:
@@ -234,21 +227,21 @@ def test_run_nl_query_wires_extraction_recommendation_and_explanation_together()
     # IDs, not a hardcoded/catalog-wide set - this is the structural
     # anti-hallucination guardrail, so verify it end to end here.
     recommended_ids = {song["id"] for song, _, _ in result["recommendations"]}
-    explanation_call = client.messages.calls[1]
-    song_id_enum = explanation_call["output_config"]["format"]["schema"]["properties"][
+    explanation_call = client.models.calls[1]
+    song_id_enum = explanation_call["config"].response_json_schema["properties"][
         "song_notes"
     ]["items"]["properties"]["song_id"]["enum"]
     assert set(song_id_enum) == recommended_ids
 
 
 def test_has_api_key_true_when_env_var_set(monkeypatch):
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test-123")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key-123")
 
     assert has_api_key() is True
 
 
 def test_has_api_key_false_when_env_var_unset(monkeypatch):
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
 
     assert has_api_key() is False
 
@@ -276,7 +269,7 @@ def test_run_nl_query_falls_back_to_default_profile_when_extraction_fails():
     assert result["fallback_table"] is not None
     assert len(result["recommendations"]) > 0
     # Only one call was attempted (extraction) - the explanation call never happens.
-    assert len(client.messages.calls) == 1
+    assert len(client.models.calls) == 1
 
 
 def test_run_nl_query_falls_back_to_table_when_explanation_fails():
@@ -305,8 +298,8 @@ def test_run_nl_query_includes_real_grounding_notes_for_recommended_genre_and_ar
 
     run_nl_query(SMALL_CATALOG, "chill lofi songs", client)
 
-    explanation_call = client.messages.calls[1]
-    user_content = explanation_call["messages"][0]["content"]
+    explanation_call = client.models.calls[1]
+    user_content = explanation_call["contents"]
     # Substrings unique to data/knowledge/genre_notes.json's "lofi" entry and
     # artist_notes.json's "LoRoom" entry - confirms the real on-disk corpus,
     # not just a hardcoded stub, made it into the prompt.

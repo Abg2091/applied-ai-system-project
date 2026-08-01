@@ -733,19 +733,19 @@ You will go deeper on this in your model card.
 
 ## Natural-Language Add-On (Stretch Feature)
 
-On top of the core recommender above, I added an optional chat-style layer that uses the Claude API. Instead of filling in genre/mood/energy by hand, you can just type a plain sentence like "chill lofi songs for studying" and it does the rest.
+On top of the core recommender above, I added an optional chat-style layer that uses Google's Gemini API (originally built with Claude, then swapped over — the design kept every provider-specific line inside one file, so the swap only meant rewriting that one file). Instead of filling in genre/mood/energy by hand, you can just type a plain sentence like "chill lofi songs for studying" and it does the rest.
 
 Here's how I kept it from just making stuff up:
 
-- The scoring system above still picks the actual songs — Claude never chooses them. Claude only turns your sentence into a profile, then writes a short explanation of what was already picked.
-- Claude is technically blocked from naming any song outside that real, already-picked list.
+- The scoring system above still picks the actual songs — Gemini never chooses them. Gemini only turns your sentence into a profile, then writes a short explanation of what was already picked.
+- Gemini is technically blocked from naming any song outside that real, already-picked list.
 - I also added a second check that scans the explanation text itself, just in case something slips through.
-- If the Claude API is down, or you haven't set up a key, it just falls back to the plain list above — it never crashes.
+- If the Gemini API is down, or you haven't set up a key, it just falls back to the plain list above — it never crashes.
 - I gave it a small set of background notes about each genre/artist (`data/knowledge/`) so its explanations have something real to point to instead of guessing.
 
 To try it:
 
-1. Copy `.env.example` to `.env` and add your own `ANTHROPIC_API_KEY`.
+1. Copy `.env.example` to `.env` and add your own `GEMINI_API_KEY` (get one at [aistudio.google.com](https://aistudio.google.com/apikey)).
 2. Run:
    ```bash
    python -m src.nl_interface "chill lofi songs for studying"

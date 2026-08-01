@@ -3,15 +3,15 @@ Textual guardrail net (Stage 4 of the RAG plan).
 
 The primary anti-hallucination guardrail is structural: build_explanation_schema()
 in src/nl_interface.py enum-constrains every song_id in song_notes to the
-exact recommended set, so Claude cannot structurally return an out-of-scope
+exact recommended set, so Gemini cannot structurally return an out-of-scope
 song reference there. check_grounding() below is a secondary net for the one
 place that constraint doesn't reach: the free-text "summary" (and each
-song_note's free-text "note"), where Claude could still namedrop a song in
+song_note's free-text "note"), where Gemini could still namedrop a song in
 prose.
 
 Scope, by design: this is exact, case-insensitive whole-phrase matching
 against the catalog's own titles/artists - nothing fuzzier. It can catch
-Claude mentioning a REAL catalog song/artist that wasn't recommended (scope
+Gemini mentioning a REAL catalog song/artist that wasn't recommended (scope
 creep). It CANNOT catch a wholly invented title/artist that matches nothing
 in the catalog - there is nothing to compare an invented string against
 without fuzzy/NER-style detection, which would reintroduce the false-

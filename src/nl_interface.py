@@ -12,11 +12,16 @@ explanation into one end-to-end natural-language query. The actual network
 calls live in src/llm_client.py; this module builds the schemas/prompts those
 calls use and assembles their results.
 
-Stage 2 added reliability: run_nl_query() no longer lets a Claude API failure
-propagate as a crash - it catches the SDK's typed errors around each network
+Stage 2 added reliability: run_nl_query() no longer lets an LLM API failure
+propagate as a crash - it catches the SDK's error classes around each network
 call and degrades to the plain, deterministic recommend_songs() table
 instead, and main() checks for a missing API key up front rather than
 letting get_client() raise past the CLI entry point.
+
+Originally built against the Claude API, then swapped to Google Gemini - see
+the provider-swap plan. The swap only touched src/llm_client.py's internals
+and the llm_errors tuple below; every schema/prompt/orchestration function in
+this module is provider-agnostic and unchanged.
 
 Stage 3 wired in the grounding corpus: run_nl_query() looks up notes for the
 genres/artists that actually appear in the recommendation set (via
@@ -36,7 +41,7 @@ from typing import Dict, List, Optional, Tuple
 
 MAX_QUERY_LENGTH = 500
 
-# Used whenever the LLM layer is unavailable (missing key, or a Claude API
+# Used whenever the LLM layer is unavailable (missing key, or a Gemini API
 # call fails) - deliberately the same starter profile main.py's demo uses, so
 # fallback output is recognizable as "the standard recommender," not
 # something new to explain.
@@ -56,7 +61,7 @@ EXTRACTION_SYSTEM_PROMPT = (
 )
 
 # Frames the recommendation context the same way: candidate_songs is the
-# closed set of songs Claude may talk about, everything else is background.
+# closed set of songs Gemini may talk about, everything else is background.
 EXPLANATION_SYSTEM_PROMPT = (
     "You are writing a short, friendly explanation of music recommendations "
     "that have already been chosen by a separate scoring system - you are "
@@ -147,7 +152,7 @@ def build_explanation_schema(candidate_ids: List[int]) -> Dict:
 
     song_id is enum-constrained to the exact IDs recommend_songs() returned
     for this query - the primary, structural anti-hallucination guardrail.
-    Claude cannot reference a song outside this set because there is no
+    Gemini cannot reference a song outside this set because there is no
     other value the schema will accept.
     """
     return {
@@ -176,7 +181,7 @@ def format_candidates_for_prompt(
     user_prefs: Dict, recommendations: List[Tuple[Dict, float, str]], grounding_notes: List[str]
 ) -> str:
     """Renders the explanation call's user content from data only - never
-    from anything Claude itself produced. `recommendations` is exactly what
+    from anything Gemini itself produced. `recommendations` is exactly what
     recommend_songs() returned; `grounding_notes` is whatever retrieval found
     (empty in Stage 1, since the corpus is added in Stage 3).
     """
@@ -195,13 +200,13 @@ def format_candidates_for_prompt(
 
 
 def has_api_key() -> bool:
-    """Whether ANTHROPIC_API_KEY is set - checked up front so main() can drop
+    """Whether GEMINI_API_KEY is set - checked up front so main() can drop
     straight into the deterministic path instead of letting get_client()
     raise past the CLI entry point.
     """
     import os
 
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    return bool(os.environ.get("GEMINI_API_KEY"))
 
 
 def format_fallback_table(user_prefs: Dict, recommendations: List[Tuple[Dict, float, str]]) -> str:
@@ -222,7 +227,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
     """End-to-end flow: free text -> real recommendations -> a grounded,
     structurally-constrained explanation.
 
-    Never lets a Claude API failure propagate - each of the two network
+    Never lets a Gemini API failure propagate - each of the two network
     calls is wrapped separately, because they fail into different states:
       - extract_profile fails: no real profile exists yet, so fall back to
         DEFAULT_FALLBACK_PROFILE and report status "extraction_failed".
@@ -231,21 +236,23 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
         explanation, reporting status "explanation_failed".
     A successful run reports status "ok".
     """
-    # Imported lazily to avoid a hard dependency on llm_client/anthropic (and
-    # therefore on the anthropic/python-dotenv packages) for callers that
-    # only need the pure schema/prompt helpers above.
-    import anthropic
+    # Imported lazily to avoid a hard dependency on llm_client/google-genai
+    # (and therefore on the google-genai/python-dotenv packages) for callers
+    # that only need the pure schema/prompt helpers above.
+    from google.genai import errors as genai_errors
 
     from src.guardrails import check_grounding
     from src.llm_client import explain_recommendations, extract_profile
     from src.recommender import recommend_songs
     from src.retrieval import get_notes
 
+    # Gemini doesn't split errors into named classes per failure type the way
+    # Anthropic does - ClientError (4xx: auth, rate limit, bad request) and
+    # ServerError (5xx) plus each error's .code attribute is the whole
+    # taxonomy, so this tuple is coarser-grained than the Claude version was.
     llm_errors = (
-        anthropic.AuthenticationError,
-        anthropic.RateLimitError,
-        anthropic.APIConnectionError,
-        anthropic.APIStatusError,
+        genai_errors.ClientError,
+        genai_errors.ServerError,
     )
 
     validate_query_length(user_query)
@@ -264,7 +271,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
         return {
             "status": "extraction_failed",
             "message": (
-                "Could not reach Claude to interpret your request; "
+                "Could not reach Gemini to interpret your request; "
                 "showing default recommendations instead."
             ),
             "user_prefs": user_prefs,
@@ -385,7 +392,7 @@ def main() -> None:
     songs = load_songs("data/songs.csv")
 
     if not has_api_key():
-        print("ANTHROPIC_API_KEY is not set; falling back to the standard recommender.")
+        print("GEMINI_API_KEY is not set; falling back to the standard recommender.")
         print("Set it (copy .env.example to .env and fill it in) to enable natural-language queries.\n")
         user_prefs = clamp_profile(dict(DEFAULT_FALLBACK_PROFILE))
         recommendations = recommend_songs(user_prefs, songs, k=5)
