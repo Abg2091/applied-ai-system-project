@@ -5,7 +5,11 @@
 Give your model a short, descriptive name.  
 Example: **VibeFinder 1.0**  
 
-This model will be called as "Match ur Mood 1.0"
+This model will be called as "Match ur Mood 2.0"
+
+(Bumped from 1.0 — this update matches the name already shown in the
+Streamlit app and reflects what's new: a much bigger catalog, confidence
+scoring, and a browser UI.)
 
 ---
 
@@ -27,7 +31,9 @@ It assumes that the mood correlates directly with the energy/feel a user is actu
 
 - Is this for real users or classroom exploration  
 
-Match ur Mood 1.0 is currently in its first phase so I would called it as more of a classroom exploration than real user ready product.
+Match ur Mood 2.0 is currently in its first phase so I would called it as more of a classroom exploration than real user ready product.
+
+It can now be used either from the command line (`python -m src.main`) or from a browser, via the new Streamlit app (`streamlit run src/streamlit_app.py`) — same recommender underneath, just a friendlier way in for someone who doesn't want to touch a terminal.
 
 ---
 
@@ -55,6 +61,15 @@ The significant change that I made is, mood and energy are weighted the heaviest
 
 Avoid code here. Pretend you are explaining the idea to a friend who does not program.
 
+- What's new: confidence scoring
+
+Alongside every set of recommendations, the system now also works out how
+confident it is in that answer — not by asking an AI to guess, but by
+calculating it from the same kind of hard facts the scoring already uses:
+did the results actually match the genre/mood asked for, and how strong is
+the single best match compared to the best it could possibly be. It comes
+out as a simple low/medium/high label plus a short reason.
+
 ---
 
 ## 4. Data  
@@ -65,23 +80,23 @@ Prompts:
 
 - How many songs are in the catalog  
 
-There are total 23 songs in the catalog.
+There are total 125 songs in the catalog.
 
 - What genres or moods are represented  
 
-Genres in the catalog (17 unique):
-pop, lofi, rock, ambient, jazz, synthwave, indie pop, classical, hip hop, folk, metal, R&B, country, EDM, reggae, blues, techno.
+Genres in the catalog (48 unique):
+pop, lofi, rock, ambient, jazz, synthwave, indie pop, classical, hip hop, folk, metal, R&B, country, EDM, reggae, blues, techno, funk, punk, disco, gospel, k-pop, latin, bossa nova, house, dubstep, soul, chiptune, orchestral, afrobeat, salsa, flamenco, celtic, trip hop, drum and bass, grunge, ska, opera, bluegrass, indie folk, dream pop, garage rock, math rock, vaporwave, chillstep, new age, samba, tango.
 
-Moods in the catalog (16 unique):
-happy, chill, intense, relaxed, moody, focused, melancholic, triumphant, nostalgic, aggressive, romantic, hopeful, euphoric, playful, somber, mysterious.
+Moods in the catalog (32 unique):
+happy, chill, intense, relaxed, moody, focused, melancholic, triumphant, nostalgic, aggressive, romantic, hopeful, euphoric, playful, somber, mysterious, confident, dark, dramatic, dreamy, energetic, epic, furious, hypnotic, intricate, peaceful, quirky, raw, restless, sensual, soulful, warm.
 
 - Did you add or remove data  
 
-I have added 13 new songs to the given data set.
+I added 13 new songs early on to fill genre/mood gaps in the original data, and this session added 102 more songs, bringing the catalog from 23 to 125 total. The goal of the big second addition was the same as the first, just at a much bigger scale — more genres and moods actually have real songs behind them, so more kinds of requests get a genuine match instead of a fallback.
 
 - Are there parts of musical taste missing in the dataset  
 
-The genres' like reggae, techno, EDM, classical, folk , metal etc, and the moods like somber, playful, euphoric, mysteriou etc. were missing in the given data set which were added later to make it more roburst.
+The original gaps (reggae, techno, EDM, classical, folk, metal, and moods like somber, playful, euphoric, mysterious) were filled in earlier. This session added a lot more variety on top — funk, punk, disco, gospel, k-pop, latin, house, dubstep, soul, and several "world"/orchestral-adjacent styles — so the catalog now covers a much wider slice of popular and electronic music. Still missing: anything outside English-language, Western-leaning music (no regional or non-English genres), and a handful of moods (dramatic, epic, hypnotic, intricate, quirky, raw, sensual, soulful) still exist on only a single song each, so requests for those are still thin.
 
 ---
 
@@ -103,13 +118,22 @@ Mood matching is the pattern I believe the scoring captures correctly.
 
 During the experiment of weight shift for genre and energy.
 
+- What's new: transparency about weak matches
+
+The new confidence score means a user now gets a signal when a result is weak, instead of it failing silently. This matters most for a rare genre/mood request that used to come back looking like any other recommendation, with nothing telling the user "this is just the closest thing available, not a real match."
+
 ---
 
 ## 6. Limitations and Bias 
 
 Where the system struggles or behaves unfairly. 
 
-Rare-tag starvation: Some moods/genres only exist on one song, so users asking for those get almost no real choice. It would need a bigger catalog or fuzzy mood matching.
+Rare-tag starvation: Some moods/genres only exist on one song, so users asking for those get almost no real choice. This session's catalog expansion (23 → 125 songs) mostly fixed this for genres, but moods are only partly improved:
+
+- Genres: 0 of 48 genres now have only 1 song (every genre has at least 2) — this is essentially solved.
+- Moods: 8 of 32 moods still have only 1 song: dramatic, epic, hypnotic, intricate, quirky, raw, sensual, soulful. Fuzzy mood matching would still help close this last gap.
+
+Note: confidence scoring (added this session) does not fix rare-tag starvation — it's a diagnostic, not a cure. What it does is make a weak match visible (as "low confidence") instead of silently returning it looking just as solid as a real match.
 
 Prompts:  
 
@@ -128,13 +152,12 @@ No popularity, recency, or lyrical/cultural content — release date, trending s
 
 - Genres or moods that are underrepresented  
 
-Counting occurrences across all 23 songs:
+Counting occurrences across all 125 songs (updated this session — was 23 songs, 12 of 17 genres and 10 of 16 moods single-song, before the catalog expansion):
 
-Genres — 12 of 17 appear in only 1 song (single point of failure):
-rock, ambient, jazz, classical, hip hop, folk, metal, country, EDM, reggae, blues, techno.
+Genres — 0 of 48 appear in only 1 song. Every genre now has at least 2 songs, most have 2-4, and one (lofi) has 6 — no more single points of failure.
 
-Moods — 10 of 16 appear in only 1 song:
-melancholic, triumphant, nostalgic, aggressive, romantic, hopeful, euphoric, playful, somber, mysterious
+Moods — 8 of 32 appear in only 1 song (single point of failure):
+dramatic, epic, hypnotic, intricate, quirky, raw, sensual, soulful.
 
 - Cases where the system overfits to one preference 
 
@@ -196,6 +219,12 @@ Bottom line: the system got more "vibe-driven" and less "genre-loyal." If two so
 
 No need for numeric metrics unless you created some.
 
+- What's new: automated tests, and checking the confidence scores
+
+Besides the manual adversarial-profile testing above, this session added an automated test suite — 83 tests across `tests/`, covering the core recommender, the natural-language layer, the retrieval/grounding notes, the safety guardrails, and the new confidence scoring — so these behaviors get checked automatically instead of only by hand.
+
+I also specifically checked the confidence score against a few known scenarios: a strong genre/mood match scored about 0.83 ("high"); a rare-tag request (genre and mood each only on a couple of songs) scored about 0.51 ("medium"); a genre/mood that doesn't exist in the catalog at all scored about 0.22 ("low"); and a request with no genre/mood preference at all (energy only) correctly still scored about 0.82 ("high") — it wasn't penalized just for not stating a preference it never made.
+
 ---
 
 ## 8. Future Work  
@@ -220,6 +249,10 @@ Currently select_diverse_top_k only caps by artist — a user can still get 5 so
 
 The model assumes one favorite genre/mood/energy per user, but real tastes are contextual ("chill lofi for studying, high-energy EDM for the gym"). Let UserProfile/user_prefs accept a list of weighted preference profiles and score each song against whichever profile fits best, rather than forcing every song through a single fixed target.
 
+- Extending confidence scoring
+
+Right now confidence is one score for the whole set of recommendations. A natural next step is scoring confidence per song instead, so a user could see that song #1 is a strong match while #4 and #5 are weaker fallbacks, rather than one blended number for the whole list. It would also be worth using a low-confidence result to actively suggest the user try a broader or different request, instead of just labeling it "low" and leaving it there. The weights in the confidence formula (0.6/0.4 for the deterministic score, 0.55/0.25/0.20 for the natural-language version) were hand-picked based on a few worked examples — calibrating them against real user feedback would make the labels more trustworthy.
+
 ---
 
 ## 9. Personal Reflection  
@@ -239,3 +272,7 @@ The interesting fact that I discovered is the huge size and feature rich data se
 - How this changed the way you think about music recommendation apps  
 
 This project forced me to think deeply about the possible ways to get the closest match to the users' preferences and faced systems' increasing complexity on the route.
+
+- What's new: building confidence scoring, and revisiting the data gap
+
+Designing the confidence score taught me that "how sure is the AI" doesn't have to mean asking an AI to guess — I could calculate it the same deterministic way as the recommendations themselves, from real signals like whether the genre/mood actually matched. That felt more trustworthy than an LLM self-rating its own certainty, which I read is generally poorly calibrated anyway. Recomputing the rare-tag stats after growing the catalog to 125 songs was also a good lesson: a much bigger dataset basically solved the genre gap (0 of 48 genres single-song now) but barely dented the mood gap (still 8 of 32 moods single-song) — more data helps, but only if it's spread across the dimension that's actually thin.
