@@ -6,6 +6,7 @@ GENRE_WEIGHT = 0.5
 MOOD_WEIGHT = 2.0
 ENERGY_WEIGHT = 3.0
 ACOUSTIC_WEIGHT = 1.0
+SIMILARITY_WEIGHT = 1.5
 
 MAX_SONGS_PER_ARTIST = 2
 
@@ -24,6 +25,8 @@ def _score_breakdown(
     fav_mood: str,
     target_energy: float,
     likes_acoustic: Optional[bool] = None,
+    artist: Optional[str] = None,
+    similarity_boost: Optional[Dict[str, float]] = None,
 ) -> Dict[str, float]:
     """Each weighted scoring component for one song, keyed by name; the total score is their sum."""
     breakdown = {
@@ -34,6 +37,8 @@ def _score_breakdown(
     if likes_acoustic is not None:
         acoustic_fit = acousticness if likes_acoustic else (1 - acousticness)
         breakdown["acoustic"] = ACOUSTIC_WEIGHT * acoustic_fit
+    if similarity_boost:
+        breakdown["similarity"] = SIMILARITY_WEIGHT * similarity_boost.get(artist, 0.0)
     return breakdown
 
 
@@ -46,10 +51,13 @@ def _score_song(
     fav_mood: str,
     target_energy: float,
     likes_acoustic: Optional[bool] = None,
+    artist: Optional[str] = None,
+    similarity_boost: Optional[Dict[str, float]] = None,
 ) -> Tuple[float, List[str]]:
     """Scores one song against a user's preferences; shared by both the dict-based and dataclass-based paths."""
     breakdown = _score_breakdown(
-        genre, mood, energy, acousticness, fav_genre, fav_mood, target_energy, likes_acoustic
+        genre, mood, energy, acousticness, fav_genre, fav_mood, target_energy,
+        likes_acoustic, artist, similarity_boost,
     )
     reasons = []
 
@@ -67,6 +75,9 @@ def _score_song(
         acoustic_fit = acousticness if likes_acoustic else (1 - acousticness)
         if acoustic_fit > 0.7:
             reasons.append("acoustic level fits your preference")
+
+    if breakdown.get("similarity", 0.0) > SIMILARITY_WEIGHT * 0.5:
+        reasons.append(f"artist '{artist}' is musically similar to your reference artist")
 
     if not reasons:
         reasons.append("closest overall match available")
@@ -177,10 +188,16 @@ def load_songs(csv_path: str) -> List[Dict]:
         print(f"Loaded {len(songs)} songs from {csv_path}.")
         return songs
 
-def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
+def score_song(
+    user_prefs: Dict, song: Dict, similarity_boost: Optional[Dict[str, float]] = None
+) -> Tuple[float, List[str]]:
     """
     Scores a single song against user preferences.
     Required by recommend_songs() and src/main.py
+
+    similarity_boost is an optional {artist: weight} map (see
+    src/similarity_store.py) from a reference artist a natural-language query
+    named - None/empty leaves scoring exactly as before.
     """
     return _score_song(
         song["genre"],
@@ -191,12 +208,17 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
         user_prefs["mood"],
         user_prefs["energy"],
         user_prefs.get("likes_acoustic"),
+        song["artist"],
+        similarity_boost,
     )
 
-def score_breakdown(user_prefs: Dict, song: Dict) -> Dict[str, float]:
+def score_breakdown(
+    user_prefs: Dict, song: Dict, similarity_boost: Optional[Dict[str, float]] = None
+) -> Dict[str, float]:
     """
     Returns each weighted scoring component (genre, mood, energy, and optionally
-    acoustic) for one song, so callers can display how its total score was built.
+    acoustic/similarity) for one song, so callers can display how its total
+    score was built.
     Required by src/main.py's breakdown display.
     """
     return _score_breakdown(
@@ -208,14 +230,25 @@ def score_breakdown(user_prefs: Dict, song: Dict) -> Dict[str, float]:
         user_prefs["mood"],
         user_prefs["energy"],
         user_prefs.get("likes_acoustic"),
+        song["artist"],
+        similarity_boost,
     )
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def recommend_songs(
+    user_prefs: Dict,
+    songs: List[Dict],
+    k: int = 5,
+    similarity_boost: Optional[Dict[str, float]] = None,
+) -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
+
+    similarity_boost: optional {artist: weight} map nudging scores toward
+    artists similar to a reference artist a query named (src/similarity_store.py).
+    None (the default) reproduces today's scores/order exactly.
     """
-    scored = [(song, *score_song(user_prefs, song)) for song in songs]
+    scored = [(song, *score_song(user_prefs, song, similarity_boost)) for song in songs]
     scored.sort(key=lambda triple: triple[1], reverse=True)
     selected = _select_diverse_top_k(scored, k, get_artist=lambda triple: triple[0]["artist"])
     return [(song, score, "; ".join(reasons)) for song, score, reasons in selected]

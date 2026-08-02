@@ -26,7 +26,13 @@ Replace this paragraph with your own summary of what your version does.
   its own picks, not just what it picked (see "How Confident Is It?" below).
 - **Expanded test coverage** — added tests for edge cases in the
   natural-language layer, the grounding/safety checks, and the new
-  confidence scoring (83 tests passing across `tests/`).
+  confidence scoring (112 tests passing across `tests/`).
+- **Second retrieval source: artist similarity** — a SQLite-backed
+  artist-similarity graph (`data/similarity.db`, built by
+  `scripts/build_similarity_db.py` from the catalog's own numeric features)
+  alongside the existing genre/artist notes. If your query names a reference
+  artist ("songs like Neon Echo"), it nudges scoring toward similar artists
+  and explains why (see "Natural-Language Add-On" below).
 
 ---
 
@@ -120,8 +126,9 @@ pytest
 ```
 
 You can add more tests in `tests/test_recommender.py`. The suite now also
-covers the natural-language layer, retrieval, guardrails, and confidence
-scoring, not just the core recommender (83 tests across `tests/`).
+covers the natural-language layer, retrieval (including the artist-similarity
+store), guardrails, and confidence scoring, not just the core recommender
+(112 tests across `tests/`).
 
 ---
 
@@ -772,6 +779,7 @@ Here's how I kept it from just making stuff up:
 - I also added a second check that scans the explanation text itself, just in case something slips through.
 - If the Gemini API is down, or you haven't set up a key, it just falls back to the plain list above — it never crashes.
 - I gave it a small set of background notes about each genre/artist (`data/knowledge/`) so its explanations have something real to point to instead of guessing.
+- If you name a reference artist ("songs like Neon Echo"), it's looked up in a second grounding source — a SQLite artist-similarity graph (`data/similarity.db`) built offline from the catalog's own audio features, not a fuzzy text/embedding search. That nudges the actual scoring toward similar artists, and the explanation says why. A mention of the reference artist itself is deliberately allowed even if it wasn't recommended this time — only genuinely uninvolved catalog songs/artists still get caught by the safety check above.
 
 To try it:
 

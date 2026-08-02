@@ -6,8 +6,9 @@ flowchart LR
     St3["Stage 3\nGrounding corpus\nkeyed lookup, not TF-IDF"]
     St4["Stage 4\nTextual guardrail net\n+ trip logging"]
     St5["Stage 5\nTests\nincl. adversarial + failure-path"]
+    St6["Stage 6\nMulti-source retrieval\nSQLite artist-similarity graph\n+ scoring boost + guardrail carve-out"]
 
-    St0 --> St1 --> St2 --> St3 --> St4 --> St5
+    St0 --> St1 --> St2 --> St3 --> St4 --> St5 --> St6
 
     St0 -. closes .-> G1["G1 numeric range"]
     St0 -. closes .-> G2["G2 genre/mood vocab"]
@@ -22,3 +23,5 @@ flowchart LR
     St4 -. closes .-> G15["G15 no observability"]
     St5 -. closes .-> G13["G13 no injection test"]
     St5 -. closes .-> G14["G14 no failure test"]
+    St6 -. closes .-> G16["G16 seed-artist hallucination"]
+    St6 -. closes .-> G17["G17 guardrail false-positive\non a legitimate seed mention"]

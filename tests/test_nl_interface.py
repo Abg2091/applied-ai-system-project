@@ -9,6 +9,7 @@ from src.nl_interface import (
     clamp_profile,
     format_candidates_for_prompt,
     format_fallback_table,
+    get_catalog_artists,
     get_catalog_vocabulary,
     has_api_key,
     run_nl_query,
@@ -80,7 +81,23 @@ def test_build_extraction_schema_constrains_genre_and_mood_to_catalog_plus_unspe
     assert schema["properties"]["genre"]["enum"] == ["lofi", "pop", "unspecified"]
     assert schema["properties"]["mood"]["enum"] == ["chill", "happy", "unspecified"]
     assert schema["additionalProperties"] is False
-    assert set(schema["required"]) == {"genre", "mood", "energy", "likes_acoustic"}
+    assert set(schema["required"]) == {"genre", "mood", "energy", "likes_acoustic", "seed_artist"}
+
+
+def test_build_extraction_schema_constrains_seed_artist_to_catalog_plus_unspecified():
+    schema = build_extraction_schema(["pop"], ["happy"], ["Neon Echo", "LoRoom"])
+
+    assert schema["properties"]["seed_artist"]["enum"] == ["LoRoom", "Neon Echo", "unspecified"]
+
+
+def test_build_extraction_schema_seed_artist_defaults_to_unspecified_only_when_no_catalog_artists_given():
+    schema = build_extraction_schema(["pop"], ["happy"])
+
+    assert schema["properties"]["seed_artist"]["enum"] == ["unspecified"]
+
+
+def test_get_catalog_artists_returns_sorted_distinct_values():
+    assert get_catalog_artists(make_small_catalog()) == ["LoRoom", "Neon Echo", "Paper Lanterns"]
 
 
 def test_clamp_profile_leaves_in_range_energy_unchanged():
@@ -125,12 +142,27 @@ def test_clamp_profile_falls_back_to_neutral_energy_when_missing():
 
 
 def test_clamp_profile_maps_unspecified_sentinel_to_empty_string():
-    profile = {"genre": "unspecified", "mood": "unspecified", "energy": 0.5, "likes_acoustic": None}
+    profile = {
+        "genre": "unspecified", "mood": "unspecified", "energy": 0.5, "likes_acoustic": None,
+        "seed_artist": "unspecified",
+    }
 
     clamped = clamp_profile(profile)
 
     assert clamped["genre"] == ""
     assert clamped["mood"] == ""
+    assert clamped["seed_artist"] == ""
+
+
+def test_clamp_profile_leaves_real_seed_artist_unchanged():
+    profile = {
+        "genre": "pop", "mood": "happy", "energy": 0.5, "likes_acoustic": None,
+        "seed_artist": "Neon Echo",
+    }
+
+    clamped = clamp_profile(profile)
+
+    assert clamped["seed_artist"] == "Neon Echo"
 
 
 def test_validate_query_length_returns_valid_text_unchanged():
@@ -360,6 +392,99 @@ def test_run_nl_query_trips_guardrail_when_explanation_mentions_an_unrecommended
     assert result["explanation"] is None
     assert result["fallback_table"] is not None
     assert all(song["id"] != 6 for song, _, _ in result["recommendations"])
+
+
+def test_run_nl_query_seed_artist_boost_reaches_scoring_and_grounding_notes(monkeypatch):
+    from src import similarity_store
+
+    # Deterministic stand-in for the real on-disk similarity graph: pretend
+    # "Neon Echo" (the seed) is similar to "LoRoom", a real artist actually
+    # present in SIX_SONG_CATALOG, so the wiring can be checked independent
+    # of whatever the real data/similarity.db happens to contain.
+    monkeypatch.setattr(
+        similarity_store, "similarity_boost_map",
+        lambda seed_artist, limit=5: {"LoRoom": 0.9} if seed_artist == "Neon Echo" else {},
+    )
+
+    profile_response = json.dumps(
+        {
+            "genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True,
+            "seed_artist": "Neon Echo",
+        }
+    )
+    explanation_response = json.dumps(
+        {"summary": "Great chill picks, plus some similar to Neon Echo.", "song_notes": [{"song_id": 1, "note": "matches"}]}
+    )
+    client = FakeClient([profile_response, explanation_response])
+
+    result = run_nl_query(SIX_SONG_CATALOG, "chill lofi songs like Neon Echo", client)
+
+    assert result["status"] == "ok"
+    # LoRoom's songs (ids 1 and 3) should now outscore Paper Lanterns' (id 2)
+    # equally-lofi/chill song, purely due to the similarity boost.
+    loroom_score = next(score for song, score, _ in result["recommendations"] if song["id"] == 1)
+    paper_lanterns_score = next(score for song, score, _ in result["recommendations"] if song["id"] == 2)
+    assert loroom_score > paper_lanterns_score
+
+    explanation_call = client.models.calls[1]
+    assert "Neon Echo" in explanation_call["contents"]
+    assert "LoRoom" in explanation_call["contents"]
+    assert "musically similar" in explanation_call["contents"]
+
+
+def test_run_nl_query_without_seed_artist_applies_no_similarity_boost(monkeypatch):
+    from src import similarity_store
+
+    monkeypatch.setattr(
+        similarity_store, "similarity_boost_map",
+        lambda seed_artist, limit=5: (_ for _ in ()).throw(
+            AssertionError("similarity_boost_map should not find a match for an empty seed_artist")
+        ) if seed_artist else {},
+    )
+
+    profile_response = json.dumps(
+        {"genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True, "seed_artist": "unspecified"}
+    )
+    explanation_response = json.dumps(
+        {"summary": "Great chill picks.", "song_notes": [{"song_id": 1, "note": "matches"}]}
+    )
+    client = FakeClient([profile_response, explanation_response])
+
+    result = run_nl_query(SIX_SONG_CATALOG, "chill lofi songs", client)
+
+    assert result["status"] == "ok"
+    explanation_call = client.models.calls[1]
+    assert "musically similar" not in explanation_call["contents"]
+
+
+def test_run_nl_query_seed_artist_mention_does_not_trip_the_grounding_guardrail(monkeypatch):
+    from src import similarity_store
+
+    monkeypatch.setattr(similarity_store, "similarity_boost_map", lambda seed_artist, limit=5: {})
+
+    profile_response = json.dumps(
+        {
+            "genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True,
+            "seed_artist": "Grave Circuit",
+        }
+    )
+    # "Grave Circuit" is a real catalog artist (Iron Verdict, id 6) that
+    # scores too low to be recommended for this profile - without the
+    # extra_allowed_artists carve-out, naming it here would incorrectly trip
+    # check_grounding exactly like the test above, even though the user
+    # themselves named it as a reference artist.
+    explanation_response = json.dumps(
+        {
+            "summary": "Since you mentioned Grave Circuit, here's something gentler that still fits your mood.",
+            "song_notes": [{"song_id": 1, "note": "matches your mood"}],
+        }
+    )
+    client = FakeClient([profile_response, explanation_response])
+
+    result = run_nl_query(SIX_SONG_CATALOG, "chill lofi songs like Grave Circuit", client)
+
+    assert result["status"] == "ok"
+    assert result["explanation"]["summary"].startswith("Since you mentioned Grave Circuit")
 
 
 def test_run_nl_query_status_ok_on_full_success():

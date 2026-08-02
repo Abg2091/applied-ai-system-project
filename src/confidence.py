@@ -21,7 +21,14 @@ hard-destructured by src/main.py and src/streamlit_app.py.
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-from src.recommender import ACOUSTIC_WEIGHT, ENERGY_WEIGHT, GENRE_WEIGHT, MOOD_WEIGHT, score_breakdown
+from src.recommender import (
+    ACOUSTIC_WEIGHT,
+    ENERGY_WEIGHT,
+    GENRE_WEIGHT,
+    MOOD_WEIGHT,
+    SIMILARITY_WEIGHT,
+    score_breakdown,
+)
 
 CATEGORICAL_WEIGHT = 0.6
 TOP1_WEIGHT = 0.4
@@ -58,7 +65,9 @@ def _tier_for(raw: float) -> str:
 
 
 def score_confidence(
-    user_prefs: Dict, recommendations: List[Tuple[Dict, float, str]]
+    user_prefs: Dict,
+    recommendations: List[Tuple[Dict, float, str]],
+    similarity_boost: Optional[Dict[str, float]] = None,
 ) -> ConfidenceResult:
     """Confidence for the deterministic recommend_songs() path.
 
@@ -72,6 +81,11 @@ def score_confidence(
     Uses score_breakdown() directly rather than parsing the joined reasons
     string, since the energy-closeness reason fires by near-chance on a dense
     catalog and would mask a genuine genre/mood miss.
+
+    similarity_boost mirrors recommend_songs()'s parameter of the same name:
+    when a query supplied one (non-empty), SIMILARITY_WEIGHT is included in
+    the ceiling too, so top1_normalized isn't deflated just because scoring
+    now has an extra component available for this query.
     """
     if not recommendations:
         return ConfidenceResult(
@@ -94,14 +108,18 @@ def score_confidence(
     if specified_fields:
         per_song_coverage = []
         for song, _score, _reasons in recommendations:
-            breakdown = score_breakdown(user_prefs, song)
+            breakdown = score_breakdown(user_prefs, song, similarity_boost)
             matched = sum(1 for field in specified_fields if breakdown.get(field, 0) > 0)
             per_song_coverage.append(matched / len(specified_fields))
         categorical_coverage = sum(per_song_coverage) / len(per_song_coverage)
     else:
         categorical_coverage = 1.0
 
-    ceiling = GENRE_WEIGHT + MOOD_WEIGHT + ENERGY_WEIGHT + (ACOUSTIC_WEIGHT if likes_acoustic is not None else 0.0)
+    ceiling = (
+        GENRE_WEIGHT + MOOD_WEIGHT + ENERGY_WEIGHT
+        + (ACOUSTIC_WEIGHT if likes_acoustic is not None else 0.0)
+        + (SIMILARITY_WEIGHT if similarity_boost else 0.0)
+    )
     top1_score = recommendations[0][1]
     top1_normalized = max(0.0, min(1.0, top1_score / ceiling))
 
@@ -140,6 +158,7 @@ def score_nl_confidence(
     recommendations: List[Tuple[Dict, float, str]],
     raw_profile: Optional[Dict] = None,
     grounding_notes: Optional[List[str]] = None,
+    similarity_boost: Optional[Dict[str, float]] = None,
 ) -> ConfidenceResult:
     """Confidence for the Gemini-backed run_nl_query() path.
 
@@ -150,7 +169,9 @@ def score_nl_confidence(
     On "ok", blends the deterministic score with two NL-specific signals:
     how usable the extracted energy value was before clamp_profile() touched
     it, and whether the grounding corpus had any notes for this
-    recommendation set.
+    recommendation set. similarity_boost is forwarded to score_confidence()
+    so its ceiling accounts for the similarity component when a reference
+    artist was used for this query.
     """
     if status in DEGRADED_STATUSES:
         return ConfidenceResult(
@@ -160,7 +181,7 @@ def score_nl_confidence(
             reason=f"The natural-language layer degraded ({status}); recommendations fell back to the deterministic table.",
         )
 
-    deterministic_result = score_confidence(user_prefs, recommendations)
+    deterministic_result = score_confidence(user_prefs, recommendations, similarity_boost)
 
     raw_energy = (raw_profile or {}).get("energy")
     try:

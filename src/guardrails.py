@@ -41,14 +41,25 @@ def _contains_whole_phrase(text: str, phrase: str) -> bool:
 
 
 def check_grounding(
-    explanation_text: str, allowed_songs: List[Dict], catalog_songs: List[Dict]
+    explanation_text: str,
+    allowed_songs: List[Dict],
+    catalog_songs: List[Dict],
+    extra_allowed_artists: Optional[List[str]] = None,
 ) -> GroundingResult:
     """Flags the first mention of a catalog title/artist that isn't part of
     `allowed_songs` (the actual recommendation set), found by scanning
     `catalog_songs` (the full catalog) for anything not in that allowed set.
+
+    extra_allowed_artists covers a legitimate case this wasn't otherwise built
+    for: a natural-language query naming a reference/seed artist (e.g. "songs
+    like Neon Echo") that the explanation may reasonably repeat even when that
+    artist isn't itself among the recommended songs. Without this carve-out,
+    such a mention would be indistinguishable from real scope creep and would
+    false-positive-trip this guardrail. Titles are unaffected - only the seed
+    artist's own tracks stay off-limits unless actually recommended.
     """
     allowed_titles = {song["title"] for song in allowed_songs}
-    allowed_artists = {song["artist"] for song in allowed_songs}
+    allowed_artists = {song["artist"] for song in allowed_songs} | set(extra_allowed_artists or [])
 
     for song in catalog_songs:
         if song["title"] not in allowed_titles and _contains_whole_phrase(

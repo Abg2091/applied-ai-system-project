@@ -1,4 +1,13 @@
-from src.recommender import Song, UserProfile, Recommender, _score_song
+from src.recommender import (
+    Song,
+    UserProfile,
+    Recommender,
+    _score_song,
+    SIMILARITY_WEIGHT,
+    recommend_songs,
+    score_breakdown,
+    score_song,
+)
 
 def make_small_recommender() -> Recommender:
     songs = [
@@ -208,3 +217,69 @@ def test_recommend_with_k_zero_returns_empty_list():
     results = rec.recommend(user, k=0)
 
     assert results == []
+
+
+DICT_USER_PREFS = {"genre": "pop", "mood": "happy", "energy": 0.8, "likes_acoustic": False}
+DICT_SONG = {
+    "id": 1, "title": "Test Pop Track", "artist": "Test Artist", "genre": "pop", "mood": "happy",
+    "energy": 0.8, "tempo_bpm": 120, "valence": 0.9, "danceability": 0.8, "acousticness": 0.2,
+}
+
+
+def test_score_song_with_no_similarity_boost_is_unchanged():
+    with_none, _ = score_song(DICT_USER_PREFS, DICT_SONG, similarity_boost=None)
+    without_param, _ = score_song(DICT_USER_PREFS, DICT_SONG)
+
+    assert with_none == without_param
+
+
+def test_score_song_applies_similarity_boost_for_matching_artist():
+    boosted_score, reasons = score_song(
+        DICT_USER_PREFS, DICT_SONG, similarity_boost={"Test Artist": 0.8}
+    )
+    unboosted_score, _ = score_song(DICT_USER_PREFS, DICT_SONG, similarity_boost=None)
+
+    assert boosted_score == unboosted_score + SIMILARITY_WEIGHT * 0.8
+    assert any("similar" in reason for reason in reasons)
+
+
+def test_score_song_similarity_boost_ignores_unmatched_artist():
+    score, _ = score_song(
+        DICT_USER_PREFS, DICT_SONG, similarity_boost={"Some Other Artist": 0.9}
+    )
+    baseline, _ = score_song(DICT_USER_PREFS, DICT_SONG, similarity_boost=None)
+
+    assert score == baseline
+
+
+def test_score_breakdown_includes_similarity_component_only_when_boost_given():
+    boosted = score_breakdown(DICT_USER_PREFS, DICT_SONG, similarity_boost={"Test Artist": 0.8})
+    unboosted = score_breakdown(DICT_USER_PREFS, DICT_SONG, similarity_boost=None)
+
+    assert boosted["similarity"] == SIMILARITY_WEIGHT * 0.8
+    assert "similarity" not in unboosted
+
+
+def test_recommend_songs_with_similarity_boost_reorders_candidates():
+    songs = [
+        {"id": 1, "title": "Neutral Match", "artist": "Neutral Artist", "genre": "rock", "mood": "intense",
+         "energy": 0.5, "tempo_bpm": 100, "valence": 0.5, "danceability": 0.5, "acousticness": 0.5},
+        {"id": 2, "title": "Similar Artist Track", "artist": "Similar Artist", "genre": "rock", "mood": "intense",
+         "energy": 0.5, "tempo_bpm": 100, "valence": 0.5, "danceability": 0.5, "acousticness": 0.5},
+    ]
+    user_prefs = {"genre": "rock", "mood": "intense", "energy": 0.5, "likes_acoustic": None}
+
+    unboosted = recommend_songs(user_prefs, songs, k=2)
+    assert unboosted[0][0]["id"] == unboosted[1][0]["id"] or unboosted[0][1] == unboosted[1][1]
+
+    boosted = recommend_songs(user_prefs, songs, k=2, similarity_boost={"Similar Artist": 1.0})
+    assert boosted[0][0]["artist"] == "Similar Artist"
+
+
+def test_recommend_songs_similarity_boost_none_matches_no_boost_argument():
+    songs = [DICT_SONG]
+
+    with_none = recommend_songs(DICT_USER_PREFS, songs, k=1, similarity_boost=None)
+    without_param = recommend_songs(DICT_USER_PREFS, songs, k=1)
+
+    assert with_none == without_param

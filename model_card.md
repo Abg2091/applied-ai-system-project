@@ -221,7 +221,7 @@ No need for numeric metrics unless you created some.
 
 - What's new: automated tests, and checking the confidence scores
 
-Besides the manual adversarial-profile testing above, this session added an automated test suite — 83 tests across `tests/`, covering the core recommender, the natural-language layer, the retrieval/grounding notes, the safety guardrails, and the new confidence scoring — so these behaviors get checked automatically instead of only by hand.
+Besides the manual adversarial-profile testing above, this session added an automated test suite — 112 tests across `tests/`, covering the core recommender, the natural-language layer, the retrieval/grounding notes (now two independent sources: the original genre/artist JSON notes, plus a SQLite-backed artist-similarity graph that also feeds scoring when a query names a reference artist), the safety guardrails, and the new confidence scoring — so these behaviors get checked automatically instead of only by hand.
 
 I also specifically checked the confidence score against a few known scenarios: a strong genre/mood match scored about 0.83 ("high"); a rare-tag request (genre and mood each only on a couple of songs) scored about 0.51 ("medium"); a genre/mood that doesn't exist in the catalog at all scored about 0.22 ("low"); and a request with no genre/mood preference at all (energy only) correctly still scored about 0.82 ("high") — it wasn't penalized just for not stating a preference it never made.
 

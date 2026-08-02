@@ -131,3 +131,40 @@ def test_score_nl_confidence_treats_missing_grounding_notes_as_partial_not_zero_
     )
 
     assert result.signals["grounding_coverage"] == 0.5
+
+
+def test_score_confidence_ceiling_excludes_similarity_weight_when_no_boost_given():
+    user_prefs = {"genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True}
+    recommendations = recommend_songs(user_prefs, CATALOG, k=2)
+
+    result_none = score_confidence(user_prefs, recommendations, similarity_boost=None)
+    result_empty = score_confidence(user_prefs, recommendations, similarity_boost={})
+
+    assert result_none.signals["top1_normalized"] <= 1.0
+    assert result_none.score == result_empty.score
+
+
+def test_score_confidence_ceiling_includes_similarity_weight_when_boost_given():
+    user_prefs = {"genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True}
+    similarity_boost = {"Artist1": 0.9}
+    recommendations = recommend_songs(user_prefs, CATALOG, k=2, similarity_boost=similarity_boost)
+
+    result = score_confidence(user_prefs, recommendations, similarity_boost=similarity_boost)
+
+    # A wider ceiling for the same (now similarity-boosted) top score keeps
+    # top1_normalized a valid fraction rather than exceeding 1.0.
+    assert result.signals["top1_normalized"] <= 1.0
+
+
+def test_score_nl_confidence_forwards_similarity_boost_to_score_confidence():
+    user_prefs = {"genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True}
+    similarity_boost = {"Artist1": 0.9}
+    recommendations = recommend_songs(user_prefs, CATALOG, k=2, similarity_boost=similarity_boost)
+
+    result = score_nl_confidence(
+        "ok", user_prefs, recommendations,
+        raw_profile={"energy": 0.4}, grounding_notes=["a real note"],
+        similarity_boost=similarity_boost,
+    )
+
+    assert result.signals["deterministic"] <= 1.0

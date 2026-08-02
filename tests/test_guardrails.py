@@ -102,6 +102,48 @@ def test_check_grounding_does_not_cross_match_when_one_catalog_title_is_a_substr
     assert result.passed is True
 
 
+def test_check_grounding_still_flags_non_recommended_artist_when_extra_allowed_artists_is_none():
+    text = "Voltline has a similar vibe if you want more energy."
+
+    result = check_grounding(text, ALLOWED, CATALOG, extra_allowed_artists=None)
+
+    assert result.passed is False
+    assert result.violation == "Voltline"
+
+
+def test_check_grounding_allows_a_legitimate_seed_artist_mention_via_extra_allowed_artists():
+    # Voltline is a real catalog artist not in ALLOWED - representing a
+    # user-named reference/seed artist ("songs like Voltline") that the
+    # explanation may legitimately repeat even though Voltline itself wasn't
+    # recommended this time.
+    text = "Since you mentioned Voltline, these picks share a similar energy."
+
+    result = check_grounding(text, ALLOWED, CATALOG, extra_allowed_artists=["Voltline"])
+
+    assert result.passed is True
+
+
+def test_check_grounding_extra_allowed_artists_does_not_whitelist_that_artists_titles():
+    # The carve-out is artist-name-only: Storm Runner (Voltline's track)
+    # still isn't recommended, so naming the title itself must still trip.
+    text = "Since you mentioned Voltline, you'd also love Storm Runner."
+
+    result = check_grounding(text, ALLOWED, CATALOG, extra_allowed_artists=["Voltline"])
+
+    assert result.passed is False
+    assert result.violation == "Storm Runner"
+
+
+def test_check_grounding_extra_allowed_artists_does_not_whitelist_other_non_recommended_artists():
+    catalog = CATALOG + [{"id": 4, "title": "Night Fall", "artist": "Echo Drift"}]
+    text = "Echo Drift also has a similar vibe."
+
+    result = check_grounding(text, ALLOWED, catalog, extra_allowed_artists=["Voltline"])
+
+    assert result.passed is False
+    assert result.violation == "Echo Drift"
+
+
 def test_check_grounding_cannot_catch_a_wholly_fabricated_name_not_in_the_catalog():
     # Documented scope limitation: exact-match-only detection can catch a
     # mention of a REAL catalog song/artist outside the allowed set, but a
