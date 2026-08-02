@@ -37,6 +37,7 @@ gains a --demo mode that runs several queries in one process (including an
 adversarial one) and prints a session-level "N of M suppressed" summary.
 """
 
+import json
 import os
 import sys
 
@@ -459,7 +460,7 @@ def main() -> None:
     from src.recommender import load_songs, recommend_songs
 
     args = sys.argv[1:]
-    songs = load_songs("data/songs.csv")
+    songs = load_songs(os.path.join(_REPO_ROOT, "data", "songs.csv"))
 
     if not has_api_key():
         print("GEMINI_API_KEY is not set; falling back to the standard recommender.")

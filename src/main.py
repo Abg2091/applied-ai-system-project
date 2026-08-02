@@ -143,7 +143,7 @@ def main() -> None:
     own recommendations - the adversarial/edge-case output is for testing,
     not something a real user should see by default.
     """
-    songs = load_songs("data/songs.csv")
+    songs = load_songs(os.path.join(_REPO_ROOT, "data", "songs.csv"))
 
     if sys.argv[1:] == ["--demo"]:
         run_adversarial_demo(songs)
