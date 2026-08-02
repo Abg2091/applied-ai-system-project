@@ -1,3 +1,4 @@
+from src import retrieval
 from src.retrieval import get_notes, load_artist_notes, load_genre_notes, lookup_notes
 
 GENRE_NOTES = {"pop": "Pop note.", "lofi": "Lofi note."}
@@ -62,3 +63,10 @@ def test_get_notes_returns_empty_list_for_genre_and_artist_not_in_the_catalog():
     notes = get_notes(genres=["opera"], artists=["Totally Fictional Artist"])
 
     assert notes == []
+
+
+def test_load_genre_and_artist_notes_return_empty_dict_when_corpus_files_are_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(retrieval, "KNOWLEDGE_DIR", tmp_path)
+
+    assert load_genre_notes() == {}
+    assert load_artist_notes() == {}

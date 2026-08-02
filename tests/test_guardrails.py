@@ -68,6 +68,40 @@ def test_check_grounding_with_empty_text_passes():
     assert result.passed is True
 
 
+def test_check_grounding_returns_first_violation_in_catalog_order_when_multiple_present():
+    catalog = CATALOG + [{"id": 4, "title": "Night Fall", "artist": "Echo Drift"}]
+    text = "Both Night Fall and Storm Runner would fit that vibe."
+
+    result = check_grounding(text, ALLOWED, catalog)
+
+    # Storm Runner (catalog index 2) is checked before Night Fall (index 3),
+    # regardless of which one is mentioned first in the text.
+    assert result.passed is False
+    assert result.violation == "Storm Runner"
+
+
+def test_check_grounding_flags_mention_with_adjacent_punctuation():
+    text = "You'd love Storm Runner! It's got great energy."
+
+    result = check_grounding(text, ALLOWED, CATALOG)
+
+    assert result.passed is False
+    assert result.violation == "Storm Runner"
+
+
+def test_check_grounding_does_not_cross_match_when_one_catalog_title_is_a_substring_of_another():
+    catalog = [
+        {"id": 1, "title": "Home", "artist": "Solo Artist"},
+        {"id": 2, "title": "Homegrown Nights", "artist": "Field Records"},
+    ]
+    allowed = [catalog[1]]  # only "Homegrown Nights" was recommended; "Home" was not
+    text = "Homegrown Nights really captures that late-summer feeling."
+
+    result = check_grounding(text, allowed, catalog)
+
+    assert result.passed is True
+
+
 def test_check_grounding_cannot_catch_a_wholly_fabricated_name_not_in_the_catalog():
     # Documented scope limitation: exact-match-only detection can catch a
     # mention of a REAL catalog song/artist outside the allowed set, but a

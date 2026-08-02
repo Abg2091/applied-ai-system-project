@@ -25,6 +25,7 @@ if _REPO_ROOT not in sys.path:
 
 import streamlit as st
 
+from src.confidence import score_confidence
 from src.nl_interface import get_catalog_vocabulary, has_api_key, run_nl_query, validate_query_length
 from src.recommender import load_songs, recommend_songs, score_breakdown
 
@@ -34,6 +35,10 @@ CSV_PATH = os.path.join(_REPO_ROOT, "data", "songs.csv")
 @st.cache_data
 def _load_songs_cached(csv_path: str):
     return load_songs(csv_path)
+
+
+def render_confidence(confidence):
+    st.caption(f"Confidence: **{confidence.tier}** ({confidence.score:.2f}) — {confidence.reason}")
 
 
 def render_recommendation(rank, song, score, reasons, user_prefs):
@@ -78,6 +83,7 @@ def render_guided_search(songs, catalog_genres, catalog_moods):
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
     st.subheader(f"Top {len(recommendations)} Recommendations")
+    render_confidence(score_confidence(user_prefs, recommendations))
     for rank, (song, score, reasons) in enumerate(recommendations, start=1):
         render_recommendation(rank, song, score, reasons, user_prefs)
 
@@ -128,6 +134,7 @@ def render_nl_query(songs):
         notes_by_song_id = {note["song_id"]: note["note"] for note in result["explanation"]["song_notes"]}
 
     st.subheader(f"Top {len(recommendations)} Recommendations")
+    render_confidence(result["confidence"])
     for rank, (song, score, reasons) in enumerate(recommendations, start=1):
         render_recommendation(rank, song, score, reasons, user_prefs)
         note = notes_by_song_id.get(song["id"])

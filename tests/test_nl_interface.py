@@ -12,6 +12,7 @@ from src.nl_interface import (
     get_catalog_vocabulary,
     has_api_key,
     run_nl_query,
+    run_session_demo,
     validate_query_length,
 )
 
@@ -376,3 +377,83 @@ def test_run_nl_query_status_ok_on_full_success():
     assert result["message"] is None
     assert result["fallback_table"] is None
     assert result["explanation"]["summary"] == "Great chill picks."
+
+
+def test_run_session_demo_reports_correct_suppressed_count(capsys):
+    profile_response = json.dumps(
+        {"genre": "lofi", "mood": "chill", "energy": 0.4, "likes_acoustic": True}
+    )
+    ok_explanation = json.dumps(
+        {"summary": "Great picks.", "song_notes": [{"song_id": 1, "note": "matches"}]}
+    )
+    # Second query's explanation mentions "Iron Verdict" - a real SIX_SONG_CATALOG
+    # song that scores far too low to be recommended for this profile, so it
+    # trips check_grounding (same scope-creep scenario as the guardrail test above).
+    tripped_explanation = json.dumps(
+        {
+            "summary": "If you want something different, Iron Verdict brings a lot of energy!",
+            "song_notes": [{"song_id": 1, "note": "matches your mood"}],
+        }
+    )
+    client = FakeClient([profile_response, ok_explanation, profile_response, tripped_explanation])
+
+    run_session_demo(SIX_SONG_CATALOG, client, queries=["chill lofi songs", "chill lofi songs again"])
+
+    captured = capsys.readouterr()
+    assert "1 of 2 explanations were suppressed by the grounding guardrail." in captured.out
+
+
+def test_run_nl_query_raises_value_error_for_empty_query_before_any_gemini_call():
+    client = FakeClient([])
+
+    try:
+        run_nl_query(SMALL_CATALOG, "", client)
+        assert False, "expected ValueError for empty query"
+    except ValueError:
+        pass
+
+    assert client.models.calls == []
+
+
+def test_clamp_profile_handles_missing_genre_and_mood_keys():
+    profile = {"energy": 0.5, "likes_acoustic": None}
+
+    clamped = clamp_profile(profile)
+
+    assert clamped["energy"] == 0.5
+
+
+def test_clamp_profile_leaves_likes_acoustic_unchanged():
+    for value in (True, False, None):
+        profile = {"genre": "pop", "mood": "happy", "energy": 0.5, "likes_acoustic": value}
+
+        clamped = clamp_profile(profile)
+
+        assert clamped["likes_acoustic"] is value
+
+
+def test_format_fallback_table_includes_every_recommendation():
+    recommendations = [
+        ({"id": 1, "title": "Sunrise City", "artist": "Neon Echo"}, 4.25, "genre matches"),
+        ({"id": 2, "title": "Midnight Coding", "artist": "LoRoom"}, 3.10, "mood matches"),
+    ]
+
+    table = format_fallback_table({"genre": "pop", "mood": "happy"}, recommendations)
+
+    assert "Sunrise City" in table
+    assert "Midnight Coding" in table
+
+
+def test_format_fallback_table_uses_any_placeholder_for_unspecified_genre_and_mood():
+    recommendations = [({"id": 1, "title": "Sunrise City", "artist": "Neon Echo"}, 4.25, "energy matches")]
+
+    table = format_fallback_table({"genre": "", "mood": ""}, recommendations)
+
+    assert "(any)" in table
+
+
+def test_build_extraction_schema_with_empty_catalog_vocabulary():
+    schema = build_extraction_schema([], [])
+
+    assert schema["properties"]["genre"]["enum"] == ["unspecified"]
+    assert schema["properties"]["mood"]["enum"] == ["unspecified"]

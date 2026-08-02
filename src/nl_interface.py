@@ -263,6 +263,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
     # that only need the pure schema/prompt helpers above.
     from google.genai import errors as genai_errors
 
+    from src.confidence import score_nl_confidence
     from src.guardrails import check_grounding
     from src.llm_client import explain_recommendations, extract_profile
     from src.recommender import recommend_songs
@@ -300,6 +301,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
             "recommendations": recommendations,
             "fallback_table": format_fallback_table(user_prefs, recommendations),
             "explanation": None,
+            "confidence": score_nl_confidence("extraction_failed", user_prefs, recommendations),
         }
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
@@ -326,6 +328,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
             "recommendations": recommendations,
             "fallback_table": format_fallback_table(user_prefs, recommendations),
             "explanation": None,
+            "confidence": score_nl_confidence("explanation_failed", user_prefs, recommendations),
         }
 
     # Secondary guardrail net: the schema already constrains song_notes'
@@ -356,6 +359,7 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
             "recommendations": recommendations,
             "fallback_table": format_fallback_table(user_prefs, recommendations),
             "explanation": None,
+            "confidence": score_nl_confidence("guardrail_tripped", user_prefs, recommendations),
         }
 
     return {
@@ -365,6 +369,9 @@ def run_nl_query(songs: List[Dict], user_query: str, client) -> Dict:
         "recommendations": recommendations,
         "fallback_table": None,
         "explanation": explanation,
+        "confidence": score_nl_confidence(
+            "ok", user_prefs, recommendations, raw_profile=raw_profile, grounding_notes=grounding_notes
+        ),
     }
 
 

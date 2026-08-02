@@ -20,6 +20,7 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
+from src.confidence import score_confidence
 from src.recommender import load_songs, recommend_songs, score_breakdown
 
 # Edge-case / adversarial profiles designed to stress-test the scoring logic:
@@ -81,6 +82,9 @@ def _print_profile_and_recommendations(label: str, user_prefs: dict, songs: list
     print(f"\nTop {len(recommendations)} Recommendations")
     print("-" * 40)
     print(_format_recommendations_table(user_prefs, recommendations))
+
+    confidence = score_confidence(user_prefs, recommendations)
+    print(f"\nConfidence: {confidence.tier} ({confidence.score:.2f}) - {confidence.reason}")
 
 
 def prompt_user_profile() -> dict:

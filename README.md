@@ -15,6 +15,21 @@ Replace this paragraph with your own summary of what your version does.
 
 ---
 
+## What's New
+
+- **Bigger catalog** — grew from 23 to 125 songs, spanning many more genres
+  (funk, k-pop, disco, house, and more), so more kinds of requests have a
+  real match to find.
+- **Streamlit web app** — a browser-based version of the recommender (see
+  "Streamlit UI" below).
+- **Confidence scores** — the recommender now reports how sure it is about
+  its own picks, not just what it picked (see "How Confident Is It?" below).
+- **Expanded test coverage** — added tests for edge cases in the
+  natural-language layer, the grounding/safety checks, and the new
+  confidence scoring (83 tests passing across `tests/`).
+
+---
+
 ## How The System Works
 
 Explain your design in plain language.
@@ -44,7 +59,7 @@ You can include a simple diagram or bullet list if helpful.
 
 Design biases identified and their fixes:
 
-1. Rare-tag starvation: Some moods/genres only exist on one song, so users asking for those get almost no real choice. (not fixed — would need a bigger catalog or fuzzy mood matching)
+1. Rare-tag starvation: Some moods/genres only exist on one song, so users asking for those get almost no real choice. 🔶 Improved, not fully fixed — the catalog grew from 23 to 125 songs across many more genres, so this is rarer than before, but some niche tags are still thin (would need fuzzy mood matching to fully close the gap).
 
 2. Typo/case sensitivity:"R&B" vs "r&b" would count as no match at all, even though they're the same thing. ✅ Fixed — comparisons now ignore case/spacing.
 
@@ -77,6 +92,11 @@ Bottom line: Fixed the "silent bugs" (typos, the broken acoustic setting, one ar
 pip install -r requirements.txt
 ```
 
+> **Troubleshooting:** if running the app (or the Streamlit UI below) raises
+> a `ModuleNotFoundError` for a package like `dotenv` or `google.genai`, your
+> virtual environment is out of sync with `requirements.txt` — just re-run
+> `pip install -r requirements.txt` inside it.
+
 3. Run the app:
 
 ```bash
@@ -99,7 +119,9 @@ Run the starter tests with:
 pytest
 ```
 
-You can add more tests in `tests/test_recommender.py`.
+You can add more tests in `tests/test_recommender.py`. The suite now also
+covers the natural-language layer, retrieval, guardrails, and confidence
+scoring, not just the core recommender (83 tests across `tests/`).
 
 ---
 
@@ -777,6 +799,39 @@ There's also a browser-based UI over the same recommender, with two tabs: a guid
    streamlit run src/streamlit_app.py
    ```
 3. The "Ask in Plain English" tab needs the same `.env` / `GEMINI_API_KEY` setup described above — without it, that tab just shows a message explaining how to enable it, and the guided-search tab works either way.
+
+Each tab also shows a confidence score above its results — see "How Confident Is It?" below for what that means.
+
+---
+
+## How Confident Is It?
+
+Alongside every set of recommendations, the system now also reports how
+confident it is in that answer — a score from 0 to 1, a simple label (low /
+medium / high), and a one-line reason.
+
+This isn't the AI guessing at its own confidence — Gemini is never asked
+"how sure are you?" (language models are notoriously bad at rating their own
+certainty). Instead, the confidence score is calculated the same deterministic
+way the recommendations themselves are, from real signals already available:
+
+- Whether the recommended songs actually match the genre/mood you asked for,
+  or are just the closest thing available.
+- How strong the single best match is, compared to the best possible score
+  for your request.
+- For natural-language queries specifically: whether Gemini's extracted
+  energy value was directly usable, and whether there were any background
+  notes (genre/artist facts) to ground its explanation in.
+
+If the natural-language layer had to fall back to the plain list (an API
+hiccup, or the safety check catching something), confidence is always
+reported as low — the system doesn't try to fake certainty when something
+already went wrong upstream.
+
+You'll see this confidence score in:
+
+- The CLI (`python -m src.main`), printed under each set of recommendations.
+- The Streamlit app, shown as a caption above each tab's results.
 
 ---
 
