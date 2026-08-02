@@ -63,12 +63,7 @@ Avoid code here. Pretend you are explaining the idea to a friend who does not pr
 
 - What's new: confidence scoring
 
-Alongside every set of recommendations, the system now also works out how
-confident it is in that answer — not by asking an AI to guess, but by
-calculating it from the same kind of hard facts the scoring already uses:
-did the results actually match the genre/mood asked for, and how strong is
-the single best match compared to the best it could possibly be. It comes
-out as a simple low/medium/high label plus a short reason.
+Alongside every set of recommendations, the system now also works out how confident it is in that answer — not by asking an AI to guess, but by calculating it from the same kind of hard facts the scoring already uses: did the results actually match the genre/mood asked for, and how strong is the single best match compared to the best it could possibly be. It comes out as a simple low/medium/high label plus a short reason.
 
 ---
 
