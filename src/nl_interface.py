@@ -37,7 +37,29 @@ gains a --demo mode that runs several queries in one process (including an
 adversarial one) and prints a session-level "N of M suppressed" summary.
 """
 
+import os
+import sys
+
+# Make this module's later `from src.xxx import ...` lazy imports (inside
+# run_nl_query()/main()) resolve regardless of how this file is launched:
+# `python -m src.nl_interface` (repo root already on sys.path) or run
+# directly - `python src/nl_interface.py`, or an IDE's Run button - where
+# only this file's own folder (src/) would otherwise be on sys.path.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
 from typing import Dict, List, Optional, Tuple
+
+from dotenv import load_dotenv
+
+# has_api_key() reads os.environ directly and is checked in main() before
+# src.llm_client is ever imported (that import - and its own load_dotenv()
+# call - only happens after main() decides an API key is available). Without
+# this call here too, a real .env file's key would be invisible to that
+# check and main() would wrongly fall back even with a valid key present.
+# load_dotenv() is idempotent, so calling it again in llm_client.py is harmless.
+load_dotenv()
 
 MAX_QUERY_LENGTH = 500
 

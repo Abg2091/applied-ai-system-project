@@ -9,7 +9,18 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
-from recommender import load_songs, recommend_songs, score_breakdown
+import os
+import sys
+
+# Make `from src.recommender import ...` resolve regardless of how this file
+# is launched: `python -m src.main` (repo root is already on sys.path) or
+# run directly - `python src/main.py`, or an IDE's Run button - where only
+# this file's own folder (src/) would otherwise be on sys.path.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+from src.recommender import load_songs, recommend_songs, score_breakdown
 
 # Edge-case / adversarial profiles designed to stress-test the scoring logic:
 # conflicting preferences, values absent from the catalog, out-of-range inputs,
@@ -72,14 +83,39 @@ def _print_profile_and_recommendations(label: str, user_prefs: dict, songs: list
     print(_format_recommendations_table(user_prefs, recommendations))
 
 
-def main() -> None:
-    """Loads the song catalog and prints the user profile alongside its top-k recommendations."""
-    songs = load_songs("data/songs.csv")
+def prompt_user_profile() -> dict:
+    """Asks the user what they want to listen to and returns a profile dict
+    in the same shape recommend_songs()/score_breakdown() already expect
+    (genre, mood, energy, likes_acoustic) - no new data shape to design.
+    """
+    print("Let's find some songs for you.\n")
 
-    # Starter example profile
-    user_prefs = {"genre": "lofi", "mood": "chill", "energy": 0.6, "likes_acoustic": True}
-    _print_profile_and_recommendations("User Profile", user_prefs, songs)
+    genre = input("What genre are you in the mood for? (e.g. pop, lofi, rock - or Enter to skip): ").strip()
+    mood = input("What mood are you looking for? (e.g. happy, chill, intense - or Enter to skip): ").strip()
 
+    energy = None
+    while energy is None:
+        raw_energy = input("What energy level do you want, from 0 (calm) to 1 (high-energy)? ").strip()
+        try:
+            energy = float(raw_energy)
+        except ValueError:
+            print("Please enter a number between 0 and 1 (e.g. 0.6).")
+
+    likes_acoustic = None
+    acoustic_answer = input("Do you like acoustic sounds? (y/n, or Enter to skip): ").strip().lower()
+    if acoustic_answer in ("y", "yes"):
+        likes_acoustic = True
+    elif acoustic_answer in ("n", "no"):
+        likes_acoustic = False
+
+    return {"genre": genre, "mood": mood, "energy": energy, "likes_acoustic": likes_acoustic}
+
+
+def run_adversarial_demo(songs: list) -> None:
+    """Reproduces the adversarial/edge-case stress tests and the acoustic
+    fence-sitter comparison - for testing/demo purposes only, not part of
+    the default user-facing run. Invoke with `python -m src.main --demo`.
+    """
     print("\n\n" + "#" * 40)
     print("Adversarial / Edge-Case Profiles")
     print("#" * 40)
@@ -95,6 +131,22 @@ def main() -> None:
     _print_profile_and_recommendations(
         "likes_acoustic=False", {**ACOUSTIC_FENCE_SITTER_BASE, "likes_acoustic": False}, songs
     )
+
+
+def main() -> None:
+    """Loads the song catalog, then either runs the adversarial/demo suite
+    (`--demo`) or asks the real user what they want and shows only their
+    own recommendations - the adversarial/edge-case output is for testing,
+    not something a real user should see by default.
+    """
+    songs = load_songs("data/songs.csv")
+
+    if sys.argv[1:] == ["--demo"]:
+        run_adversarial_demo(songs)
+        return
+
+    user_prefs = prompt_user_profile()
+    _print_profile_and_recommendations("Your Profile", user_prefs, songs)
 
 
 if __name__ == "__main__":

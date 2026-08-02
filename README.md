@@ -83,6 +83,14 @@ pip install -r requirements.txt
 python -m src.main
 ```
 
+It'll ask you what you're in the mood for (genre, mood, energy, acoustic preference) and just show your own recommendations - no test data mixed in.
+
+Want to see the adversarial/edge-case stress tests instead (the ones used to prove the scoring logic holds up)? Run:
+
+```bash
+python -m src.main --demo
+```
+
 ### Running Tests
 
 Run the starter tests with:

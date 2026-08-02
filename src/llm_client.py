@@ -61,6 +61,12 @@ def _generate_json(client: Any, system_prompt: str, contents: str, schema: Dict,
             response_mime_type="application/json",
             response_json_schema=schema,
             max_output_tokens=max_tokens,
+            # Gemini 3.5 Flash has thinking enabled by default, and on a
+            # short structured-output call the model can spend the entire
+            # max_output_tokens budget on internal thinking, hitting
+            # MAX_TOKENS with empty visible text before writing any JSON.
+            # Neither task here needs deep reasoning, so disable it outright.
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
     return json.loads(response.text)
