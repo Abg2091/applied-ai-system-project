@@ -22,3 +22,105 @@ id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
 21,Half Light,Sable Lane,indie pop,relaxed,0.48,92,0.60,0.55,0.50
 22,Slow Burn Avenue,Cinder & Wale,R&B,moody,0.68,100,0.55,0.62,0.35
 23,Tidewalk,Coral Static,synthwave,focused,0.70,104,0.58,0.65,0.25
+24,Silver Constellation,Onyx Calloway,pop,happy,0.80,101,0.66,0.75,0.15
+25,Golden Terrace,Rune Dane,pop,euphoric,0.71,118,0.72,0.89,0.20
+26,Fading Overture,Marigold Sterling,lofi,relaxed,0.28,75,0.47,0.53,0.74
+27,Glowing Beacon,Lyric Hartley,lofi,chill,0.40,82,0.47,0.63,0.67
+28,Midnight Cathedral,Auden Knox,rock,triumphant,0.87,124,0.41,0.60,0.09
+29,Velvet Meadow,Dune Marrow,rock,aggressive,0.81,160,0.65,0.58,0.10
+30,Weathered Orbit,Juno Lachlan,ambient,chill,0.27,60,0.53,0.30,0.84
+31,Faded Cathedral,Juno Voss,ambient,mysterious,0.29,56,0.46,0.26,0.81
+32,Faded River,Rune Lachlan,jazz,moody,0.35,111,0.63,0.68,0.79
+33,Emerald Static,Indigo Fairweather,jazz,moody,0.49,107,0.73,0.58,0.74
+34,Silver Anthem,Isolde Reyes,synthwave,moody,0.82,99,0.61,0.81,0.18
+35,Hollow Wildfire,Zephyr Kade,synthwave,euphoric,0.73,112,0.67,0.65,0.24
+36,Vivid Pulse,Opaline Rivers,indie pop,hopeful,0.49,117,0.60,0.55,0.48
+37,Ivory Alley,Kestrel Grove,indie pop,relaxed,0.62,96,0.81,0.63,0.46
+38,Gentle Canyon,Marlowe Ashgrove,classical,peaceful,0.31,88,0.52,0.22,0.91
+39,Wandering Voyage,Ember Ives,classical,triumphant,0.22,70,0.51,0.29,0.86
+40,Falling River,Opaline Voss,hip hop,confident,0.68,100,0.83,0.78,0.13
+41,Gentle Vessel,Rune Lachlan,hip hop,confident,0.83,97,0.85,0.86,0.12
+42,Iron Frontier,Onyx Thorne,folk,hopeful,0.27,79,0.60,0.40,0.83
+43,Hollow Nightfall,Sable Hollow,folk,hopeful,0.27,80,0.66,0.36,0.84
+44,Weathered Corridor,Rune Voss,metal,intense,0.97,178,0.34,0.39,0.08
+45,Drifting Canyon,Onyx Marrow,metal,furious,0.93,163,0.32,0.45,0.07
+46,Sleepless Lantern,Cedar Nightingale,R&B,sensual,0.65,83,0.61,0.69,0.34
+47,Neon Bridge,Lyric Castellan,R&B,moody,0.67,82,0.65,0.82,0.36
+48,Electric Wilderness,Basalt Ives,country,hopeful,0.69,119,0.74,0.50,0.55
+49,Rising Tide,Dune Nightingale,country,hopeful,0.49,90,0.80,0.50,0.65
+50,Ancient Current,Marigold Dane,EDM,intense,0.87,128,0.79,0.86,0.08
+51,Electric Constellation,Orin Hollow,EDM,euphoric,0.93,132,0.93,0.91,0.02
+52,Scarlet Harbor,Dune Larkspur,reggae,playful,0.55,85,0.73,0.79,0.46
+53,Feral Beacon,Cedar Kade,reggae,playful,0.50,94,0.71,0.69,0.48
+54,Hidden Skyline,Lyric Nightingale,blues,moody,0.42,69,0.41,0.49,0.84
+55,Silent Prism,Auden Marchetti,blues,somber,0.27,66,0.43,0.33,0.72
+56,Hollow Skyline,Thistle Wolfe,techno,intense,0.80,142,0.53,0.84,0.15
+57,Sleepless Season,Nova Calloway,techno,focused,0.90,128,0.58,0.77,0.04
+58,Broken Constellation,Basalt Finch,funk,energetic,0.71,106,0.82,0.81,0.28
+59,Emerald Anthem,Isolde Rivers,funk,playful,0.67,113,0.84,0.79,0.22
+60,Silver Cathedral,Lyric Larkspur,punk,restless,0.92,177,0.49,0.52,0.14
+61,Trembling Mirror,Basalt Hollow,punk,furious,0.92,159,0.46,0.51,0.07
+62,Crimson Chamber,Rune Calloway,disco,playful,0.83,121,0.88,0.92,0.15
+63,Wild Constellation,Marlowe Lachlan,disco,playful,0.87,115,0.90,0.80,0.21
+64,Shattered Cascade,Bramble Calloway,gospel,hopeful,0.62,110,0.81,0.63,0.41
+65,Rising Meadow,Rune Ives,gospel,warm,0.64,111,0.83,0.60,0.41
+66,Restless Reverie,Orin Rivers,k-pop,happy,0.93,113,0.76,0.84,0.20
+67,Copper Wreckage,Nova Marrow,k-pop,playful,0.76,113,0.69,0.85,0.14
+68,Hidden Vessel,Auden Sharp,latin,playful,0.70,113,0.69,0.76,0.29
+69,Iron Pulse,Halcyon Fairweather,latin,romantic,0.69,97,0.87,0.89,0.32
+70,Weathered Compass,Talon Knox,bossa nova,warm,0.40,96,0.63,0.57,0.71
+71,Silver Canyon,Marigold Calloway,bossa nova,peaceful,0.44,80,0.67,0.55,0.76
+72,Silent Threshold,Fennel Quill,house,hypnotic,0.88,125,0.72,0.86,0.08
+73,Rising Constellation,Solene Calloway,house,euphoric,0.78,125,0.62,0.92,0.09
+74,Endless Meadow,Bramble Quill,dubstep,dark,0.80,142,0.55,0.77,0.10
+75,Ancient Cascade,Ember Bishop,dubstep,dark,0.92,147,0.42,0.70,0.09
+76,Silent Labyrinth,Dune Grove,soul,romantic,0.64,82,0.59,0.74,0.45
+77,Electric Terrace,Indigo Lachlan,soul,romantic,0.56,100,0.67,0.66,0.46
+78,Hidden Labyrinth,Ember Castellan,chiptune,quirky,0.81,145,0.71,0.68,0.27
+79,Whispering Alley,Opaline Thorne,chiptune,energetic,0.79,143,0.72,0.70,0.19
+80,Marble Current,Indigo Rivers,orchestral,epic,0.48,94,0.33,0.19,0.83
+81,Amber Nightfall,Rune Reyes,orchestral,somber,0.51,94,0.46,0.17,0.92
+82,Lonely Sanctuary,Wren Dane,afrobeat,energetic,0.85,118,0.74,0.78,0.27
+83,Starlit Wildfire,Dune Knox,afrobeat,warm,0.77,117,0.83,0.91,0.30
+84,Faded Vessel,Isolde Vale,salsa,confident,0.75,193,0.86,0.90,0.37
+85,Silver Undertow,Basalt Vale,salsa,confident,0.81,192,0.69,0.89,0.23
+86,Ancient Bridge,Cedar Rivers,flamenco,melancholic,0.60,119,0.50,0.60,0.69
+87,Starlit Cascade,Lyric Ives,flamenco,intense,0.64,137,0.56,0.65,0.69
+88,Sleepless River,Opaline Bishop,celtic,hopeful,0.58,100,0.55,0.40,0.64
+89,Silver Timeline,Halcyon Marrow,celtic,nostalgic,0.49,101,0.69,0.43,0.75
+90,Velvety Nightfall,Onyx Grove,trip hop,mysterious,0.54,73,0.44,0.64,0.54
+91,Lonely Reverie,Juno Quill,trip hop,moody,0.45,90,0.36,0.59,0.48
+92,Vivid Beacon,Bramble Marrow,drum and bass,intense,0.86,173,0.62,0.76,0.11
+93,Silent Cascade,Cassia Moreau,drum and bass,intense,0.87,171,0.61,0.87,0.11
+94,Ivory Season,Sable Rivers,grunge,raw,0.79,147,0.37,0.62,0.27
+95,Velvet Orbit,Ember Castellan,grunge,aggressive,0.85,146,0.45,0.53,0.11
+96,Hidden Bridge,Isolde Quill,ska,happy,0.83,151,0.71,0.79,0.33
+97,Bright Horizon,Kestrel Quill,ska,playful,0.71,156,0.75,0.81,0.29
+98,Sleepless Nightfall,Isolde Castellan,opera,triumphant,0.43,74,0.44,0.20,0.91
+99,Painted Timeline,Basalt Sharp,opera,dramatic,0.55,107,0.49,0.22,0.87
+100,Endless Alley,Indigo Marrow,bluegrass,nostalgic,0.58,144,0.77,0.59,0.59
+101,Velvety Timeline,Lyric Fairweather,bluegrass,warm,0.75,122,0.62,0.52,0.62
+102,Marble Pulse,Marlowe Rivers,indie folk,nostalgic,0.54,102,0.56,0.59,0.78
+103,Starlit Corridor,Onyx Jarrow,indie folk,nostalgic,0.44,100,0.61,0.47,0.84
+104,Emerald Timeline,Onyx Ives,dream pop,dreamy,0.45,87,0.63,0.59,0.58
+105,Dusty Threshold,Vesper Thorne,dream pop,dreamy,0.49,98,0.63,0.61,0.60
+106,Iron Wildfire,Corvus Lachlan,garage rock,energetic,0.80,143,0.68,0.60,0.19
+107,Broken Labyrinth,Rune Bishop,garage rock,restless,0.79,127,0.49,0.58,0.11
+108,Whispering Overture,Auden Moreau,math rock,intricate,0.61,138,0.58,0.59,0.24
+109,Vivid Meadow,Frost Rivers,math rock,intense,0.69,154,0.46,0.48,0.20
+110,Amber River,Cedar Larkspur,vaporwave,mysterious,0.45,88,0.63,0.54,0.44
+111,Endless Overture,Zephyr Rivers,vaporwave,chill,0.41,89,0.41,0.54,0.41
+112,Emerald Echo,Vesper Thorne,chillstep,chill,0.65,96,0.64,0.62,0.55
+113,Distant Timeline,Kestrel Bishop,chillstep,peaceful,0.63,80,0.68,0.59,0.56
+114,Velvet Timeline,Thistle Fenwick,new age,hopeful,0.21,58,0.65,0.27,0.91
+115,Midnight Aftermath,Zephyr Ives,new age,peaceful,0.24,65,0.51,0.22,0.92
+116,Scarlet Horizon,Halcyon Jarrow,samba,warm,0.75,101,0.80,0.88,0.30
+117,Whispering Labyrinth,Cedar Quill,samba,happy,0.78,104,0.79,0.89,0.22
+118,Echoing Beacon,Bramble Thorne,tango,intense,0.63,100,0.55,0.57,0.65
+119,Wandering Prism,Onyx Bishop,tango,intense,0.67,122,0.48,0.67,0.53
+120,Rising Timeline,Indigo Castellan,dream pop,chill,0.45,104,0.61,0.63,0.72
+121,Faded Sanctuary,Bramble Jarrow,classical,somber,0.25,87,0.29,0.10,0.94
+122,Feral Passage,Halcyon Moreau,lofi,focused,0.34,80,0.52,0.56,0.79
+123,Ancient Parade,Dune Quill,funk,confident,0.78,107,0.85,0.84,0.21
+124,Rising Nightfall,Frost Hartley,blues,soulful,0.35,81,0.50,0.43,0.68
+125,Crimson Static,Kestrel Marchetti,reggae,hopeful,0.62,92,0.67,0.79,0.35

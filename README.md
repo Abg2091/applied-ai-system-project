@@ -764,6 +764,22 @@ If you don't set up a key, it just skips straight to the normal recommender abov
 
 ---
 
+## Streamlit UI
+
+There's also a browser-based UI over the same recommender, with two tabs: a guided form (genre/mood/energy/acoustic) and a natural-language query box.
+
+1. Install dependencies (`streamlit` is already in `requirements.txt`):
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Run it from the repo root:
+   ```bash
+   streamlit run src/streamlit_app.py
+   ```
+3. The "Ask in Plain English" tab needs the same `.env` / `GEMINI_API_KEY` setup described above — without it, that tab just shows a message explaining how to enable it, and the guided-search tab works either way.
+
+---
+
 ## Reflection
 
 Read and complete `model_card.md`:
