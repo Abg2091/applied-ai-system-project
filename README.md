@@ -732,6 +732,132 @@ Top 5 Recommendations
    Breakdown: genre=+0.00, mood=+0.00, energy=+2.70, acoustic=+0.55
    - energy (0.58) is close to your target (0.48)
 
+###----- Final System output after running main.py -----###
+1. Match ur Mood 2.0 output from main.py example #1
+
+(.venv) PS D:\Learning\applied-ai-system-final> python -m src.main
+Loaded 125 songs from D:\Learning\applied-ai-system-final\data\songs.csv.
+Let's find some songs for you.
+
+What genre are you in the mood for? (e.g. pop, lofi, rock - or Enter to skip): pop
+What mood are you looking for? (e.g. happy, chill, intense - or Enter to skip): dancing
+What energy level do you want, from 0 (calm) to 1 (high-energy)? 0.7
+Do you like acoustic sounds? (y/n, or Enter to skip): n
+
+Your Profile
+========================================
+genre: pop
+mood: dancing
+energy: 0.7
+likes_acoustic: False
+
+Top 5 Recommendations
+----------------------------------------
+# | Title                | Artist        | Score | Breakdown                                             | Reasons                                                                                                             
+--+----------------------+---------------+-------+-------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------
+1 | Golden Terrace       | Rune Dane     | 4.27  | genre=+0.50, mood=+0.00, energy=+2.97, acoustic=+0.80 | genre 'pop' matches your favorite; energy (0.71) is close to your target (0.70); acoustic level fits your preference
+2 | Silver Constellation | Onyx Calloway | 4.05  | genre=+0.50, mood=+0.00, energy=+2.70, acoustic=+0.85 | genre 'pop' matches your favorite; energy (0.80) is close to your target (0.70); acoustic level fits your preference
+3 | Sunrise City         | Neon Echo     | 3.96  | genre=+0.50, mood=+0.00, energy=+2.64, acoustic=+0.82 | genre 'pop' matches your favorite; energy (0.82) is close to your target (0.70); acoustic level fits your preference
+4 | Falling River        | Opaline Voss  | 3.81  | genre=+0.00, mood=+0.00, energy=+2.94, acoustic=+0.87 | energy (0.68) is close to your target (0.70); acoustic level fits your preference                                   
+5 | Vivid Meadow         | Frost Rivers  | 3.77  | genre=+0.00, mood=+0.00, energy=+2.97, acoustic=+0.80 | energy (0.69) is close to your target (0.70); acoustic level fits your preference                                   
+
+Confidence: medium (0.44) - Some recommendations match your specified genre/mood preferences; others are the closest available fallback.
+
+
+2. Match ur Mood 2.0 output from main.py example #2:
+
+(.venv) PS D:\Learning\applied-ai-system-final> python -m src.main
+Loaded 125 songs from D:\Learning\applied-ai-system-final\data\songs.csv.
+Let's find some songs for you.
+
+What genre are you in the mood for? (e.g. pop, lofi, rock - or Enter to skip): EDM
+What mood are you looking for? (e.g. happy, chill, intense - or Enter to skip): Intense
+What energy level do you want, from 0 (calm) to 1 (high-energy)? 0.8
+Do you like acoustic sounds? (y/n, or Enter to skip): n
+
+Your Profile
+========================================
+genre: EDM
+mood: Intense
+energy: 0.8
+likes_acoustic: False
+
+Top 5 Recommendations
+----------------------------------------
+# | Title           | Artist         | Score | Breakdown                                             | Reasons                                                                                                                                                          
+--+-----------------+----------------+-------+-------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1 | Ancient Current | Marigold Dane  | 6.21  | genre=+0.50, mood=+2.00, energy=+2.79, acoustic=+0.92 | genre 'EDM' matches your favorite; mood 'intense' fits what you're looking for; energy (0.87) is close to your target (0.80); acoustic level fits your preference
+2 | Hollow Skyline  | Thistle Wolfe  | 5.85  | genre=+0.00, mood=+2.00, energy=+3.00, acoustic=+0.85 | mood 'intense' fits what you're looking for; energy (0.80) is close to your target (0.80); acoustic level fits your preference                                   
+3 | Vivid Beacon    | Bramble Marrow | 5.71  | genre=+0.00, mood=+2.00, energy=+2.82, acoustic=+0.89 | mood 'intense' fits what you're looking for; energy (0.86) is close to your target (0.80); acoustic level fits your preference                                   
+4 | Silent Cascade  | Cassia Moreau  | 5.68  | genre=+0.00, mood=+2.00, energy=+2.79, acoustic=+0.89 | mood 'intense' fits what you're looking for; energy (0.87) is close to your target (0.80); acoustic level fits your preference                                   
+5 | Storm Runner    | Voltline       | 5.57  | genre=+0.00, mood=+2.00, energy=+2.67, acoustic=+0.90 | mood 'intense' fits what you're looking for; energy (0.91) is close to your target (0.80); acoustic level fits your preference                                   
+
+Confidence: medium (0.74) - Some recommendations match your specified genre/mood preferences; others are the closest available fallback.
+
+
+3. Match ur Mood 2.0 output from main.py example #3:
+
+(.venv) PS D:\Learning\applied-ai-system-final> python -m src.main
+Loaded 125 songs from D:\Learning\applied-ai-system-final\data\songs.csv.
+Let's find some songs for you.
+
+What genre are you in the mood for? (e.g. pop, lofi, rock - or Enter to skip): rock
+What mood are you looking for? (e.g. happy, chill, intense - or Enter to skip): chill
+What energy level do you want, from 0 (calm) to 1 (high-energy)? 0.6
+Do you like acoustic sounds? (y/n, or Enter to skip): y
+
+Your Profile
+========================================
+genre: rock
+mood: chill
+energy: 0.6
+likes_acoustic: True
+
+Top 5 Recommendations
+----------------------------------------
+# | Title           | Artist           | Score | Breakdown                                             | Reasons                                                                                                                     
+--+-----------------+------------------+-------+-------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------
+1 | Emerald Echo    | Vesper Thorne    | 5.40  | genre=+0.00, mood=+2.00, energy=+2.85, acoustic=+0.55 | mood 'chill' fits what you're looking for; energy (0.65) is close to your target (0.60)                                     
+2 | Rising Timeline | Indigo Castellan | 5.27  | genre=+0.00, mood=+2.00, energy=+2.55, acoustic=+0.72 | mood 'chill' fits what you're looking for; energy (0.45) is close to your target (0.60); acoustic level fits your preference
+3 | Midnight Coding | LoRoom           | 5.17  | genre=+0.00, mood=+2.00, energy=+2.46, acoustic=+0.71 | mood 'chill' fits what you're looking for; acoustic level fits your preference                                              
+4 | Library Rain    | Paper Lanterns   | 5.11  | genre=+0.00, mood=+2.00, energy=+2.25, acoustic=+0.86 | mood 'chill' fits what you're looking for; acoustic level fits your preference                                              
+5 | Glowing Beacon  | Lyric Hartley    | 5.07  | genre=+0.00, mood=+2.00, energy=+2.40, acoustic=+0.67 | mood 'chill' fits what you're looking for                                                                                   
+
+Confidence: medium (0.63) - Some recommendations match your specified genre/mood preferences; others are the closest available fallback.
+
+
+4. Match ur Mood 2.0 output from main.py example #4:
+
+(.venv) PS D:\Learning\applied-ai-system-final> python -m src.main
+Loaded 125 songs from D:\Learning\applied-ai-system-final\data\songs.csv.
+Let's find some songs for you.
+
+What genre are you in the mood for? (e.g. pop, lofi, rock - or Enter to skip): blues
+What mood are you looking for? (e.g. happy, chill, intense - or Enter to skip): calm
+What energy level do you want, from 0 (calm) to 1 (high-energy)? 0.3
+Do you like acoustic sounds? (y/n, or Enter to skip): y
+
+Your Profile
+========================================
+genre: blues
+mood: calm
+energy: 0.3
+likes_acoustic: True
+
+Top 5 Recommendations
+----------------------------------------
+# | Title             | Artist            | Score | Breakdown                                             | Reasons                                                                                                               
+--+-------------------+-------------------+-------+-------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------
+1 | Rainy Alley Blues | Delta Mo          | 4.25  | genre=+0.50, mood=+0.00, energy=+3.00, acoustic=+0.75 | genre 'blues' matches your favorite; energy (0.30) is close to your target (0.30); acoustic level fits your preference
+2 | Silent Prism      | Auden Marchetti   | 4.13  | genre=+0.50, mood=+0.00, energy=+2.91, acoustic=+0.72 | genre 'blues' matches your favorite; energy (0.27) is close to your target (0.30); acoustic level fits your preference
+3 | Rising Nightfall  | Frost Hartley     | 4.03  | genre=+0.50, mood=+0.00, energy=+2.85, acoustic=+0.68 | genre 'blues' matches your favorite; energy (0.35) is close to your target (0.30)                                     
+4 | Hidden Skyline    | Lyric Nightingale | 3.98  | genre=+0.50, mood=+0.00, energy=+2.64, acoustic=+0.84 | genre 'blues' matches your favorite; energy (0.42) is close to your target (0.30); acoustic level fits your preference
+5 | Gentle Canyon     | Marlowe Ashgrove  | 3.88  | genre=+0.00, mood=+0.00, energy=+2.97, acoustic=+0.91 | energy (0.31) is close to your target (0.30); acoustic level fits your preference                                     
+
+Confidence: medium (0.50) - Some recommendations match your specified genre/mood preferences; others are the closest available fallback.
+
+
+Note: A similar output can be obtained in the straemlit app by providing above input parameters.
 
 Before vs. After: what changed when energy started counting for more and genre for less
 
