@@ -2,6 +2,28 @@
 
 > **Stretch features only.** Only fill in the sections that apply to stretch features you attempted. If you did not attempt a stretch feature, leave its section blank or delete it. This file is not required for the core project.
 
+
+As a strech feature, I have added a secodary data source: 
+
+Summary: Adding Artist Similarity to a Music Recommender
+
+What's Changing & Why:
+
+The project currently recommends songs using static JSON files for genre and artist notes. This update adds a second data source — an artist similarity database — so the system can also understand queries like "songs like Neon Echo." Crucially, this new source will influence both song scoring and explanations, not just the explanation layer. The old JSON files remain untouched; this is purely additive.
+
+How It Works:
+
+A one-time script reads song data (energy, tempo, mood, etc.), groups songs by artist, and calculates which artists sound most similar to each other. Results are saved into a local SQLite database file.
+
+When a user types a query mentioning a reference artist, the system extracts that artist name (constrained to real artists in the catalog to prevent hallucinations).
+
+That artist is looked up in the similarity database to get a boost map — a ranked list of musically similar artists with weights.
+
+Those weights nudge song scores upward for similar artists and generate a human-readable explanation like "Because you mentioned Neon Echo, this artist is musically similar."
+
+If no reference artist is mentioned, nothing changes — all existing behavior is preserved exactly.
+
+Note: Refer to the snipet "Artist Similarity Output" in the asset forlder for the Streamlit output.
 ---
 
 ## Agentic Workflow (SF8)
@@ -10,7 +32,7 @@
 
 **What task did you give the agent?**
 
-I asked it to add a natural-language layer on top of my recommender, using the Claude API and RAG (retrieval-augmented generation), so you could type a plain sentence instead of filling in genre/mood/energy by hand. My one hard requirement was that it could never make up a song that isn't actually in my catalog.
+I asked it to add a natural-language layer on top of my recommender, using the Gemini API and RAG (retrieval-augmented generation), so you could type a plain sentence instead of filling in genre/mood/energy by hand. My one hard requirement was that it could never make up a song that isn't actually in my catalog.
 
 **Prompts used:**
 
@@ -24,9 +46,9 @@ I asked it to add a natural-language layer on top of my recommender, using the C
 It built the feature in 4 stages instead of one big change, so each piece could be tested on its own before moving to the next:
 
 - `src/nl_interface.py` — turns free text into a profile, using a schema that only allows real genres/moods from my catalog
-- `src/llm_client.py` — the actual Claude API calls
+- `src/llm_client.py` — the actual Gemini API calls
 - `src/retrieval.py` + `data/knowledge/*.json` — short background notes per genre/artist, used to ground the explanations
-- `src/guardrails.py` — a second check that scans Claude's explanation text for any song it shouldn't be mentioning
+- `src/guardrails.py` — a second check that scans Gemini's explanation text for any song it shouldn't be mentioning
 - A matching test file for each of the above, plus updates to `requirements.txt`, `.gitignore`, and `.env.example`
 
 **What did you verify or fix manually?**
